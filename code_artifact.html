@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>長輩慢活旅行家 - 三方案互動導覽</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        :root {
+            /* 預設為方案 A 配色 (雅緻古風) */
+            --primary: #7D8F69;
+            --primary-light: #F1F4EE;
+            --secondary: #C5A059;
+            --secondary-light: #F9F5EC;
+            --bg-warm: #FDFBF7;
+            --text-dark: #3E3B39;
+        }
+
+        /* 方案 B 配色 (樂活泉石) */
+        .scheme-b-theme {
+            --primary: #517E8E;
+            --primary-light: #EEF4F6;
+            --secondary: #CC8B65;
+            --secondary-light: #FAF2EE;
+            --bg-warm: #F7FAF9;
+            --text-dark: #2F393B;
+        }
+
+        /* 方案 C 配色 (芬多精都會) */
+        .scheme-c-theme {
+            --primary: #2C5E43;
+            --primary-light: #EAF2EC;
+            --secondary: #A0522D;
+            --secondary-light: #FDF5E6;
+            --bg-warm: #FAF9F5;
+            --text-dark: #2F2E2C;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-warm);
+            color: var(--text-dark);
+            scroll-behavior: smooth;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+            max-height: 400px;
+        }
+
+        .tab-active {
+            background-color: var(--primary) !important;
+            color: white !important;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+        }
+
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            background-color: var(--secondary);
+            border-radius: 50%;
+            position: absolute;
+            left: -6px;
+            top: 24px;
+            transition: background-color 0.5s ease;
+        }
+
+        .card-shadow {
+            box-shadow: 0 10px 30px -15px rgba(62, 59, 57, 0.08);
+        }
+
+        .glass-nav {
+            background: rgba(253, 251, 247, 0.9);
+            backdrop-filter: blur(12px);
+        }
+
+        /* 印表機專用樣式，方便長輩列印實體行程 */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-card {
+                border: 1px solid #ccc !important;
+                box-shadow: none !important;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden transition-colors duration-500">
+
+    <nav class="fixed top-0 w-full z-50 glass-nav border-b border-gray-100 transition-colors duration-500">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <span class="text-2xl">🐢</span>
+                <span class="font-bold text-lg tracking-wider text-gray-800">長輩慢活旅行家</span>
+            </div>
+            <div class="hidden md:flex space-x-8 text-sm font-medium">
+                <a href="#overview" class="hover:text-[var(--primary)] transition-colors">方案理念</a>
+                <a href="#itinerary" class="hover:text-[var(--primary)] transition-colors">行程導覽</a>
+                <a href="#analysis" class="hover:text-[var(--primary)] transition-colors">專業數據</a>
+                <a href="#safety-guide" class="hover:text-[var(--primary)] transition-colors">避坑指南</a>
+                <a href="#tips" class="hover:text-[var(--primary)] transition-colors">打包清單</a>
+            </div>
+            <button onclick="window.print()" class="bg-[var(--primary)] text-white px-5 py-2 rounded-full text-sm font-medium hover:opacity-90 transition-all shadow-md no-print">
+                🖨️ 列印行程
+            </button>
+        </div>
+    </nav>
+
+    <section id="overview" class="pt-28 pb-16 px-4">
+        <div class="max-w-5xl mx-auto text-center">
+            <!-- 方案頂部動態徽章 -->
+            <span id="scheme-badge" class="inline-block px-4 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs font-bold mb-4 transition-all">
+                經典與山海祈福之旅 (方案 A)
+            </span>
+            <h1 class="text-3xl md:text-5xl font-bold mb-6 text-gray-800 leading-tight">
+                專為長輩優化的<br><span id="hero-title" class="text-[var(--primary)]">「零障礙、慢步調」</span>旅行計畫
+            </h1>
+            <p id="hero-desc" class="text-base md:text-lg text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+                本計畫針對 50-80 歲長輩深度優化。告別趕鴨子的打卡行程，我們重視護膝平路、每 90 分鐘如廁頻率，以及車輛大客車直達的安全感，打造真正享受生活的療癒慢旅。
+            </p>
+
+            <!-- 核心亮點切換 (方案 A vs 方案 B vs 方案 C) -->
+            <div class="bg-gray-100 p-1.5 rounded-2xl flex flex-wrap justify-center gap-1.5 mb-12 shadow-inner no-print max-w-2xl mx-auto">
+                <button onclick="switchScheme('A')" id="scheme-btn-A" class="px-5 py-3 rounded-xl font-bold text-xs md:text-sm transition-all duration-300 tab-active flex-1 min-w-[140px]">
+                    🌸 方案 A：懷舊山海祈福
+                </button>
+                <button onclick="switchScheme('B')" id="scheme-btn-B" class="px-5 py-3 rounded-xl font-bold text-xs md:text-sm text-gray-500 transition-all duration-300 hover:bg-white/50 flex-1 min-w-[140px]">
+                    ♨️ 方案 B：樂活溫泉生態
+                </button>
+                <button onclick="switchScheme('C')" id="scheme-btn-C" class="px-5 py-3 rounded-xl font-bold text-xs md:text-sm text-gray-500 transition-all duration-300 hover:bg-white/50 flex-1 min-w-[140px]">
+                    🌲 方案 C：芬多精都會大器
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="p-5 bg-white rounded-2xl card-shadow border border-gray-50">
+                    <div class="text-3xl mb-2">♿</div>
+                    <div class="text-sm font-bold text-gray-800">全平緩設計</div>
+                    <div class="text-xs text-gray-400 mt-1">拒絕高落差樓梯</div>
+                </div>
+                <div class="p-5 bg-white rounded-2xl card-shadow border border-gray-50">
+                    <div class="text-3xl mb-2">🚽</div>
+                    <div class="text-sm font-bold text-gray-800">頻繁如廁點</div>
+                    <div class="text-xs text-gray-400 mt-1">平均90分鐘安排放水</div>
+                </div>
+                <div class="p-5 bg-white rounded-2xl card-shadow border border-gray-50">
+                    <div class="text-3xl mb-2">🚌</div>
+                    <div class="text-sm font-bold text-gray-800">直達低徒步</div>
+                    <div class="text-xs text-gray-400 mt-1">景點門口無縫上下車</div>
+                </div>
+                <div class="p-5 bg-white rounded-2xl card-shadow border border-gray-50">
+                    <div class="text-3xl mb-2">🍽️</div>
+                    <div class="text-sm font-bold text-gray-800">慢享中式合菜</div>
+                    <div class="text-xs text-gray-400 mt-1">2小時充裕用餐與休息</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="itinerary" class="py-12 bg-white">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex flex-col items-center mb-8">
+                <h2 id="itinerary-sec-title" class="text-2xl md:text-3xl font-bold mb-2">方案 A：三日深度慢活導覽</h2>
+                <p class="text-gray-500 text-sm md:text-base">點選天數，深入探索為長輩特別優化的時序表</p>
+            </div>
+
+            <!-- 天數分頁切換 -->
+            <div class="flex justify-center space-x-2 mb-10 no-print">
+                <button onclick="switchDay(1)" id="btn-day1" class="tab-active px-6 py-2.5 rounded-full font-bold text-sm md:text-base transition-all duration-300">第一天 Day 1</button>
+                <button onclick="switchDay(2)" id="btn-day2" class="px-6 py-2.5 rounded-full font-bold text-sm md:text-base text-gray-500 transition-all duration-300 hover:bg-gray-100">第二天 Day 2</button>
+                <button onclick="switchDay(3)" id="btn-day3" class="px-6 py-2.5 rounded-full font-bold text-sm md:text-base text-gray-500 transition-all duration-300 hover:bg-gray-100">第三天 Day 3</button>
+            </div>
+
+            <!-- 行程時序與細節內容 -->
+            <div id="day-content" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <!-- 左側：縱向時序圖 (佔 7 欄) -->
+                <div class="lg:col-span-7 space-y-4">
+                    <div id="timeline-list" class="relative border-l-2 border-dashed border-gray-200 ml-4 pl-8 py-2">
+                        <!-- 這裡將由 JavaScript 動態填入時序點 -->
+                    </div>
+                </div>
+
+                <!-- 右側：當日細節、優化指標與溫馨提示 (佔 5 欄) -->
+                <div class="lg:col-span-5">
+                    <div class="bg-[var(--bg-warm)] p-6 md:p-8 rounded-3xl sticky top-24 card-shadow border border-gray-100 transition-all duration-500">
+                        <h3 id="day-title" class="text-xl md:text-2xl font-bold mb-3 text-[var(--primary)] transition-colors">今日行程主題</h3>
+                        <p id="day-desc" class="text-sm md:text-base text-gray-600 mb-6 leading-relaxed">當日概覽載入中...</p>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-start space-x-3 bg-white p-4 rounded-2xl border border-gray-50 shadow-sm">
+                                <span class="text-xl">🌟</span>
+                                <div>
+                                    <h4 class="font-bold text-sm text-gray-800">核心無障礙優化</h4>
+                                    <p id="day-opt" class="text-xs text-gray-500 mt-1">優化點載入中...</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-3 bg-white p-4 rounded-2xl border border-gray-50 shadow-sm">
+                                <span class="text-xl">💡</span>
+                                <div>
+                                    <h4 class="font-bold text-sm text-gray-800">貼心導遊小錦囊</h4>
+                                    <p id="day-note" class="text-xs text-gray-500 mt-1">備註載入中...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 行程強度條 -->
+                        <div class="mt-8 pt-6 border-t border-gray-200">
+                            <div class="flex justify-between items-center text-sm mb-2">
+                                <span class="font-bold text-gray-700">當日活動體能消耗等級</span>
+                                <span id="intensity-val" class="text-[var(--secondary)] font-bold transition-colors">輕鬆</span>
+                            </div>
+                            <div class="w-full bg-gray-200 h-2.5 rounded-full overflow-hidden">
+                                <div id="intensity-bar" class="bg-[var(--secondary)] h-full transition-all duration-700" style="width: 30%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="safety-guide" class="py-16 bg-gray-50 border-t border-b border-gray-100">
+        <div class="max-w-4xl mx-auto px-4">
+            <div class="text-center mb-10">
+                <h2 class="text-2xl md:text-3xl font-bold mb-2 text-gray-800">⚠️ 專業導遊避坑指南</h2>
+                <p class="text-gray-500 text-sm">魔鬼藏在細節裡！我們如何針對潛在風險預作安全防護：</p>
+            </div>
+
+            <div id="safety-cards-container" class="space-y-4">
+                <!-- 這裡將由 JavaScript 根據方案動態產生診斷卡片 -->
+            </div>
+        </div>
+    </section>
+
+    <section id="analysis" class="py-16 bg-white">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-2xl md:text-3xl font-bold mb-3 text-gray-800">為什麼這份行程更適合長輩？</h2>
+                <p class="text-gray-500">透過科學的行程維度與時間分配，讓家屬放心、長輩安心</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+                <!-- 圖表一：雷達圖 -->
+                <div class="bg-[var(--bg-warm)] p-6 md:p-8 rounded-3xl border border-gray-100 card-shadow">
+                    <h4 class="text-base md:text-lg font-bold mb-4 text-center text-gray-800">慢活行程 vs. 傳統高壓行程 維度分析</h4>
+                    <div class="chart-container">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                    <p class="mt-4 text-xs text-gray-400 text-center italic">
+                        ※ 本行程在「膝關節負載」與「平均步行強度」上顯著降低，同時保障「景點停留感」。
+                    </p>
+                </div>
+                <!-- 圖表二：圓環圖 -->
+                <div class="bg-[var(--bg-warm)] p-6 md:p-8 rounded-3xl border border-gray-100 card-shadow">
+                    <h4 class="text-base md:text-lg font-bold mb-4 text-center text-gray-800">整趟行程時間分配比例 (%)</h4>
+                    <div class="chart-container">
+                        <canvas id="doughnutChart"></canvas>
+                    </div>
+                    <p class="mt-4 text-xs text-gray-400 text-center italic">
+                        ※ 我們規劃了超過 45% 的緩衝時間（景點與午茶停留），拒絕拼命趕路。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="tips" class="py-16 bg-[var(--bg-warm)] transition-colors duration-500">
+        <div class="max-w-4xl mx-auto px-4">
+            <div class="bg-[var(--primary)] text-white p-8 md:p-12 rounded-[2.5rem] shadow-xl relative overflow-hidden transition-colors duration-500">
+                <div class="relative z-10">
+                    <h3 class="text-2xl md:text-3xl font-bold mb-2 text-center">🧳 長輩出發隨身行李必備包</h3>
+                    <p class="text-center text-white/80 text-xs md:text-sm mb-8">攜帶正確的物品，能讓整趟旅程舒適感提升 200%！</p>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="flex items-center space-x-4 bg-white/10 p-4 rounded-2xl cursor-pointer hover:bg-white/20 transition-all" onclick="toggleCheck(this, 'shoe')">
+                            <div id="check-shoe" class="check-circle w-6 h-6 border-2 border-white rounded-full flex items-center justify-center text-xs font-bold"></div>
+                            <div>
+                                <span class="font-bold block text-sm md:text-base">防滑減震運動鞋</span>
+                                <span class="text-xs text-white/70">保護膝關節，走雨林、老街與平緩步道必備</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4 bg-white/10 p-4 rounded-2xl cursor-pointer hover:bg-white/20 transition-all" onclick="toggleCheck(this, 'bottle')">
+                            <div id="check-bottle" class="check-circle w-6 h-6 border-2 border-white rounded-full flex items-center justify-center text-xs font-bold"></div>
+                            <div>
+                                <span class="font-bold block text-sm md:text-base">輕便保溫瓶</span>
+                                <span class="text-xs text-white/70">隨身攜帶，以便各景點隨時補充溫熱開水</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4 bg-white/10 p-4 rounded-2xl cursor-pointer hover:bg-white/20 transition-all" onclick="toggleCheck(this, 'coat')">
+                            <div id="check-coat" class="check-circle w-6 h-6 border-2 border-white rounded-full flex items-center justify-center text-xs font-bold"></div>
+                            <div>
+                                <span class="font-bold block text-sm md:text-base">防風保暖輕外套</span>
+                                <span class="text-xs text-white/70">故宮、陶博館冷氣強、海岸與山區風大防感冒</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4 bg-white/10 p-4 rounded-2xl cursor-pointer hover:bg-white/20 transition-all" onclick="toggleCheck(this, 'med')">
+                            <div id="check-med" class="check-circle w-6 h-6 border-2 border-white rounded-full flex items-center justify-center text-xs font-bold"></div>
+                            <div>
+                                <span class="font-bold block text-sm md:text-base">常用藥品與暈車藥</span>
+                                <span class="text-xs text-white/70">慢性病常用藥，及走山路或高低起伏路面防暈必備</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 text-center text-xs md:text-sm text-white/60">
+                        💡 點選圓框即可標記已完成打包項目。進度將會自動保存！
+                    </div>
+                </div>
+                <!-- 裝飾背景泡泡 -->
+                <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+                <div class="absolute -left-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-12 bg-white border-t border-gray-100">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <div class="flex justify-center space-x-6 mb-6 text-2xl">
+                <span>🌲</span><span>⛰️</span><span>🌊</span><span>🍱</span><span>🐢</span>
+            </div>
+            <p class="text-sm font-bold text-gray-700">專為 50-80 歲長輩設計的無障礙慢活之旅</p>
+            <p class="text-xs text-gray-400 mt-2">© 2026 長輩慢活旅行家策劃團隊 | 安全、體貼、尊榮</p>
+        </div>
+    </footer>
+
+    <script>
+        const schemesData = {
+            'A': {
+                badge: "經典與山海祈福之旅 (方案 A)",
+                heroTitle: "「零階梯、經典祈福」",
+                heroDesc: "本行程圍繞北台灣經典廟宇、海景與地標。捨棄九份高階梯、以全平路的和平島步道與寬敞庭園餐飲優化。讓長輩重溫歷史風情的同時，關節零負擔！",
+                itinerarySecTitle: "方案 A：懷舊經典三日深度導覽",
+                safetyGuides: [
+                    {
+                        title: "大溪老街的隱形高階梯避坑",
+                        risk: "傳統行程多安排大溪老街內用中餐。但大溪老街遊覽車必須停在大溪橋或月眉停車場，長輩需爬約3層樓高的石階步道上老街，極傷膝蓋。",
+                        solution: "我們將午餐優化改至「大溪/龍潭交流道旁」的平地庭園餐廳，遊覽車直接開到餐廳門口，0 階梯直達大圓桌。"
+                    },
+                    {
+                        title: "九份老街高強度階梯與管制避坑",
+                        risk: "九份著名的阿妹茶樓、豎崎路全部是陡峭石階。且假日大客車管制，長輩必須在山下排隊轉乘接駁公車，勞頓且極易滑倒或走散。",
+                        solution: "改以「和平島地質公園」替代，此景點備有「無障礙藍沙公路步道」，大客車可直達門口，平地看海輕鬆舒適。"
+                    },
+                    {
+                        title: "野柳地質公園的烈日與強風防護",
+                        risk: "野柳岬角深入海中，毫無遮蔽，強海風與高溫暴曬極易造成長輩頭痛或體力嚴重透支。",
+                        solution: "導遊全程備妥防風披肩、遮陽帽提醒。若天候過度惡劣，則直接啟用備案「國立海洋科技博物館」，全室內冷氣且備有全區電梯與緩坡。"
+                    }
+                ],
+                radarData: [90, 20, 95, 10, 90], // 文化豐富度, 步行難度, 休息頻率, 膝蓋負擔, 餐食舒適度
+                doughnutData: [30, 25, 25, 20], // 景點停留, 慢享用餐, 交通休憩, 飯店放鬆
+                days: {
+                    1: {
+                        title: "台北懷舊風情與歷史地標",
+                        desc: "首日由高雄出發，北上途中安排兩次國道服務區放水與舒展筋骨。抵達台北後以開闊的全平地歷史地標為主，晚間入住圓山大飯店享受懷舊尊榮。",
+                        optimization: "午餐精選大溪交流道平地庭園餐廳，避開老街坡度與碎石路面，輪椅、拐杖皆通行無阻。",
+                        note: "下午 15:00 中正紀念堂大堂觀賞英挺儀隊交接，全區有無障礙坡道與直達電梯，冷氣涼爽。",
+                        intensity: 30,
+                        intensityLabel: "極度輕鬆",
+                        events: [
+                            { time: "07:00", name: "高雄快樂出發", detail: "搭乘雙層大客車，每 90 分鐘安全停靠國道服務區（新營、清水），給長輩充裕如廁時間。" },
+                            { time: "11:30", name: "午餐：交流道旁平地合菜", detail: "精選桃園大溪/龍潭交流道旁友善庭園餐廳。車輛停靠門口，長輩下車直達桌位，慢享精緻客家菜餚。" },
+                            { time: "14:15", name: "中正紀念堂 (全平路)", detail: "參觀開闊的堂體，並於 15:00 觀看全台知名的三軍儀隊交接，全平路，設有寬敞無障礙升降梯。" },
+                            { time: "16:15", name: "大飯店 Check-in 憩息", detail: "下午辦理圓山大飯店入住。特別安排 1.5 小時房內梳洗與午睡，充飽體力再吃晚飯。" },
+                            { time: "18:00", name: "晚餐：圓山大飯店中式晚宴", detail: "在挑高、懷舊紅柱的圓山飯店內慢享精緻桌菜。長輩最愛的喜慶大器氛圍，用餐不趕，飯後能在宮殿迴廊拍照留念。" }
+                        ]
+                    },
+                    2: {
+                        title: "北海岸平緩海景與漁港慢享",
+                        desc: "今日以親近北海岸自然風光為核心。用全平地、備有無障礙藍沙公路的和平島地質公園替代多階梯的九份，不費膝蓋、海景滿分。",
+                        optimization: "捨棄需要高強度爬階梯且擁擠的九份，改走和平島地質公園，視野寬廣且好走。",
+                        note: "野柳及和平島海風較大，請務必提醒長輩準備防風外套，若烈日曝曬請隨時使用導遊準備的洋傘。",
+                        intensity: 55,
+                        intensityLabel: "適中步調",
+                        events: [
+                            { time: "09:30", name: "野柳地質公園尋奇", detail: "欣賞奇特的女王頭與蕈狀石。景區步道鋪設平整，長輩穿防滑鞋可輕鬆隨行，拍出經典美照。" },
+                            { time: "12:00", name: "午餐：金山順發海產大餐", detail: "品嚐最道地的金山野生現撈海鮮，慢享 2 小時，用餐環境寬敞、無階梯高低差，餐後可在周邊平緩散步。" },
+                            { time: "14:30", name: "和平島地質公園 (替代九份)", detail: "遊覽車直接開到遊客中心門口。平緩直通海岸觀景台，不用爬階梯、不用擠公車，優雅欣賞萬人堆海景。" },
+                            { time: "16:30", name: "回程飯店休整", detail: "下午車程中，長輩可以在車上閉目養神，回到飯店後有充分時間放鬆泡熱水澡、梳洗。" },
+                            { time: "18:30", name: "晚餐：圍桌中式晚宴", detail: "考量體力，不安排擁擠且需排隊、無座位的基隆夜市。改在安靜、高雅的合菜餐館，慢享精緻晚宴。" }
+                        ]
+                    },
+                    3: {
+                        title: "百年古剎祈福與伴手禮歸賦",
+                        desc: "最後一日專屬心靈與懷舊之旅。龍山寺為長輩最愛的信仰聖地，平緩開闊。回程南下台中購買伴手禮，安全返家。",
+                        optimization: "龍山寺周圍規劃專屬大客車臨時停靠點，步行到正殿僅 1 分鐘，免去長途步行折騰。",
+                        note: "台中伴手禮選購處皆安排遊覽車能直接靠邊臨停的店家，長輩一下車即可入店試吃選購。",
+                        intensity: 40,
+                        intensityLabel: "輕鬆自在",
+                        events: [
+                            { time: "09:00", name: "萬華龍山寺祈福參拜", detail: "百年古剎、香火鼎盛。全平路鋪面好走，無門檻阻礙。長輩可在此點香祈求家人平安健康。" },
+                            { time: "12:00", name: "午餐：苗栗客家莊私房合菜", detail: "南下苗栗，精選平地、設有大型遊覽車格的友善老店，享用道地又溫潤的客家傳統美食。" },
+                            { time: "13:30", name: "台中宮原眼科 / 太陽堂", detail: "漫步在挑高的懷舊老建築中，吃上一球美味冰淇淋、挑選最正宗的太陽餅、鳳梨酥送給親友。" },
+                            { time: "15:00", name: "國道南迴返高雄", detail: "中途停靠清水或新營特色服務區。晚上 18:30~19:00 安全抵達高雄，圓滿結束護膝之旅。" }
+                        ]
+                    }
+                }
+            },
+
+            'B': {
+                badge: "樂活溫泉與文化生態之旅 (方案 B)",
+                heroTitle: "「最舒適車程、極致低難度」",
+                heroDesc: "本行程專為對車程舒適度要求高、極度不願多走路的長輩量身設計。融合無障礙陶瓷博物館與北頭平坦溫泉區、淡水海邊落日，並入住高檔溫泉飯店慢享。車程最流暢，散步最無憂。",
+                itinerarySecTitle: "方案 B：溫泉生態三日深度導覽",
+                safetyGuides: [
+                    {
+                        title: "北頭地熱谷與溫泉博的「斜坡挑戰」",
+                        risk: "北頭溫泉區中山路與溫泉路皆為陡峭斜坡，且大型大客車常年無法進入或在博物館正門臨停。長輩若一路徒步爬坡上行，膝關節與心血管負荷極大。",
+                        solution: "我們特別租用飯店接駁專車或在「新北投捷運站旁平緩區」上下車。地熱谷園區內全面改走全新平緩的無障礙環湖步道，不喘不累。"
+                    },
+                    {
+                        title: "小油坑強風、火山低溫與高濃度硫氣",
+                        risk: "小油坑擁有極其壯麗的後火山噴氣孔地質，但其常年伴隨濃烈的強硫氣，且高海拔風勢強勁、溫度低。這對有氣喘或心血管不適的長輩是潛在隱形雷區。",
+                        solution: "行程調整為「車遊陽金風光」，至現場僅預留 15 分鐘平地步道拍照。導遊備妥防風面罩與溫開水，呼吸道敏感之長輩可直接在備有暖氣的大客車上隔窗欣賞壯觀奇景。"
+                    },
+                    {
+                        title: "新竹城隍廟的擁擠小吃攤與交通雷區",
+                        risk: "城隍廟周邊交通極度擁擠混亂、遊覽車無處停靠。且廟內攤位狹小、地面因小吃洗滌而常年濕滑、並有極高的傳統石造高門檻，長輩容易被推擠絆倒。",
+                        solution: "捨棄帶長輩進入狹窄廟內擠人。改將遊覽車平穩行駛至新竹市區「設有專屬大車位、空間寬敞無障礙」的經典中式餐廳，由專人直送城隍廟百年老店的正宗貢丸米粉至包廂大圓桌，讓長輩尊榮又安全地慢享。"
+                    }
+                ],
+                radarData: [85, 10, 98, 5, 95], // 文化豐富度, 步行難度, 休息頻率, 膝蓋負擔, 餐食舒適度
+                doughnutData: [20, 30, 20, 30], // 景點停留, 慢享用餐, 交通休憩, 飯店/溫泉放鬆
+                days: {
+                    1: {
+                        title: "鶯歌陶瓷美學與北投溫泉鄉沉浸",
+                        desc: "首日北上安排鶯歌陶瓷博物館，全館具備極致冷氣與頂級無障礙斜坡電梯，避暑又好走。傍晚直達北投溫泉酒店入住，享受暖心湯泉與精緻北投酒家菜。",
+                        optimization: "鶯歌陶博館與北投溫泉博物館均設有完善坡道，全程免爬階梯，導遊協助安排隨身手推輪椅預備。",
+                        note: "進入北投溫泉池前，導遊將詳細向長輩說明安全守則（每次不超過15分鐘、備足水分），並派員在男/女湯外定時關懷。",
+                        intensity: 20,
+                        intensityLabel: "極致放鬆",
+                        events: [
+                            { time: "07:00", name: "高雄大器出發", detail: "搭乘高頂氣墊大客車。中途每 90 分鐘停靠安全服務區（如新營、清水），提供舒展筋骨與如廁空間。" },
+                            { time: "11:30", name: "午餐：三峽經典懷舊台菜", detail: "安排於寬敞、設有專屬大客車停車場的老字號餐館，享用易入口的精緻大圓桌合菜。" },
+                            { time: "13:00", name: "鶯歌陶瓷博物館 (極致無障礙)", detail: "全台首屈一指的無障礙公立博物館。全冷氣、全緩坡，長輩可不費力地慢步觀賞精美陶藝與大器挑高建築。" },
+                            { time: "15:00", name: "車程接駁直達北投溫泉區", detail: "大客車平穩行駛至新北投。直接將長輩與行李送達溫泉飯店門口，由行李員無縫接應。" },
+                            { time: "16:00", name: "北投地熱谷 & 溫泉博物館", detail: "步行極短！地熱谷環湖步道全面整建為全平坦無障礙木棧道，長輩能優雅散步，欣賞霧氣繚繞的夢幻硫磺溫泉源頭。" },
+                            { time: "17:30", name: "入住溫泉飯店享用酒家菜", detail: "在溫泉飯店（如老爺/大地或同級）辦理入住。晚餐直接在飯店內慢享精緻「北投酒家菜」，飯後長輩可在房內舒適泡湯、全然放鬆。" }
+                        ]
+                    },
+                    2: {
+                        title: "陽明山壯麗車遊與淡水金色暮色",
+                        desc: "今日上午安排陽明山「小油坑」車遊與極短徒步，下山至北海岸品嚐澎湃海鮮。下午沿著美麗海岸線慢行，並於傍晚漫步淡水漁人碼頭，觀賞全台最美夕陽落日。",
+                        optimization: "小油坑火山景點避開高強度登高。淡水漁人碼頭採用無障礙坡道直通海邊，免爬情人橋階梯，拒絕上下台階折磨。",
+                        note: "淡水及小油坑風勢一般較大，請務必提醒長輩準備防風防寒外套，以免著涼。",
+                        intensity: 40,
+                        intensityLabel: "輕鬆自在",
+                        events: [
+                            { time: "09:00", name: "車遊陽明山 (小油坑)", detail: "大客車沿著陽金公路盤旋上山，在「小油坑」景區停靠。下車僅走 3 分鐘即可抵達觀景台拍照，觀賞熱氣奔騰的硫磺噴氣孔與崩塌地形。" },
+                            { time: "10:30", name: "陽金公路下山直達金山", detail: "緩慢下山，長輩能在舒適的氣墊車上閉目養神，欣賞兩側秀麗山景。" },
+                            { time: "11:30", name: "午餐：金山順發海產大餐", detail: "長輩最期待、最肥美的新鮮海味盛宴。慢食 2 小時，用餐環境不擁擠，備有無障礙洗手間。" },
+                            { time: "13:30", name: "金包里老街平緩慢步", detail: "避開老街擁擠的核心中段。由導遊引領長輩於入口平寬路段選購知名地瓜伴手禮、蔴粩，並安排茶店入座小憩。" },
+                            { time: "14:30", name: "海岸線車遊 (淡金公路)", detail: "大客車沿著蔚藍的淡金公路慢行，安排長輩在車上睡個舒適午覺，一邊享受海岸風光。" },
+                            { time: "16:00", name: "淡水漁人碼頭平緩夕陽", detail: "漫步在淡水寬敞、一望無際的平坦木棧道上。看著金色夕陽落入海平面、大船入港，海風徐徐，是全台最舒適的散步點。" },
+                            { time: "18:30", name: "晚餐：淡水在地精緻台菜", detail: "享用淡水在地中式海景台菜。飯後可回北投飯店繼續享受溫泉，舒緩一日的雙腳。" }
+                        ]
+                    },
+                    3: {
+                        title: "士林官邸賞花園與新竹小吃慢享",
+                        desc: "最後一天慢遊士林官邸平坦花園，樹蔭繁茂、空氣清新，隨手一拍都是美照。中午南下新竹，在舒適的無障礙餐廳內，坐享專人直送的城隍廟名產，隨後安全返家。",
+                        optimization: "士林官邸全區平地無阻礙，樹蔭極多，設有大量木椅。新竹午餐特別安排避開城隍廟內擁擠攤位，由餐廳為長輩直送美食至乾淨包廂中。",
+                        note: "官邸園區內小黑蚊較多，導遊隨身攜帶防蚊液與小折疊椅為長輩服務。",
+                        intensity: 30,
+                        intensityLabel: "極度輕鬆",
+                        events: [
+                            { time: "09:00", name: "士林官邸花園散步", detail: "前總統蔣公官邸，園內繁花似錦。全區水泥及磚石鋪面極為平整。長輩可在玫瑰園、中式庭園拍下漂亮個人照。" },
+                            { time: "11:00", name: "大客車南下新竹", detail: "登車出發，在車上享用溫開水並稍微休息。" },
+                            { time: "12:30", name: "午餐：新竹小吃特色合菜", detail: "特別安排在新竹市區具備「大車位、大平路、高質感」的合菜餐廳。由導遊特別採購城隍廟老店的貢丸、米粉、肉圓送至桌前，長輩免排隊、免吹風即可安穩慢享正宗美味。" },
+                            { time: "14:00", name: "快樂出發南迴返高", detail: "大客車緩慢平穩南下，中途停靠清水或新營等大器服務區，選購特色手信。" },
+                            { time: "18:30", name: "平安抵達高雄", detail: "晚間 18:30 前返抵高雄。導遊親切協助提起伴手禮與行李，為這場「極致零階梯、溫泉生態之旅」畫下完美句點。" }
+                        ]
+                    }
+                }
+            },
+            'C': {
+                badge: "芬多精森林與都會大器之旅 (方案 C)",
+                heroTitle: "「森林芬多精、都會無障礙」",
+                heroDesc: "本行程融合極致的自然森林與都會大器風情。精選全台唯一低海拔亞熱帶雨林「大板根」的一環平緩木棧道，結合全區無障礙設計的故宮博物院與松菸，完美兼顧芬多精與極致舒適性！",
+                itinerarySecTitle: "方案 C：森林都會三日深度導覽",
+                safetyGuides: [
+                    {
+                        title: "大板根原生雨林的青苔與防滑防護",
+                        risk: "大板根擁有極美雨林景致，但森林內富含水氣，若遇到雨後，平緩木棧道及石板路可能會有微濕或青苔，長輩容易滑倒。",
+                        solution: "我們僅規劃走極平緩的「一環木棧道」，並要求導遊隨身攜帶小折疊椅。提醒長輩務必著高抓地力防滑走路鞋，不急不趕、徐行慢遊。"
+                    },
+                    {
+                        title: "陽金公路蜿蜒山路的防暈車預警 (極重要)",
+                        risk: "從北海岸金山回台北市區，若直接行駛陽金公路翻越陽明山，山路陡峭且急彎極多。長輩中午剛吃完豐盛的海產，極易暈車、胃部不適。",
+                        solution: "專業導遊將於出發前確認長輩身體狀況。若有容易暈車之長輩，大客車將改走「國道三號/基金公路高架」。雖路程多10分鐘，但一路平穩無急彎，安全舒適。"
+                    },
+                    {
+                        title: "松菸文創園區散步與歇腳點規劃",
+                        risk: "松菸園區佔地寬廣，雖然全平地非常好走，但如果缺乏歇腳點，長輩長時間漫步仍會導致腰酸或腿部疲勞。",
+                        solution: "我們重點安排巴洛克花園（長椅密度極高）與室內誠品文創大樓。每 20 分鐘即提醒長輩在長椅或咖啡店坐下休息，多點停頓、少點疲勞。"
+                    }
+                ],
+                radarData: [95, 30, 90, 15, 95], // 文化豐富度, 步行難度, 休息頻率, 膝蓋負擔, 餐食舒適度
+                doughnutData: [35, 25, 20, 20], // 景點停留, 慢享用餐, 交通休憩, 飯店放鬆
+                days: {
+                    1: {
+                        title: "三峽大板根雨林與信義極致台菜",
+                        desc: "首日直達三峽大板根原生雨林，吸取飽滿的芬多精。避開中高難度的二、三環，僅走平緩舒適的一環木棧道。傍晚入住台北，在無障礙設施卓越的信義商圈享用精緻台菜。",
+                        optimization: "大板根森林中僅行一環平坦線，步行時間控制在 40 分鐘內，沿途無陡峭石階。信義商圈皆有寬敞電梯與平路，非常適合輪椅或緩行長輩。",
+                        note: "森林溫度比平地低2度，請長輩務必攜帶防風保暖輕外套，防寒防風防蚊。",
+                        intensity: 45,
+                        intensityLabel: "舒適徐行",
+                        events: [
+                            { time: "07:00", name: "高雄大器出發", detail: "搭乘寬敞氣墊遊覽車。每 90 分鐘停靠服務區（新營、清水）進行如廁、伸展、喝溫水。" },
+                            { time: "11:30", name: "午餐：大板根麗宴中餐廳", detail: "在酒店內的優雅中餐廳慢享精緻客家與溫潤合菜。不用出景區，吃完直接漫步森林。" },
+                            { time: "13:00", name: "大板根原生雨林 (僅走一環)", detail: "全台唯一低海拔亞熱帶雨林，滿滿芬多精。僅走最平緩的「一環步道（約40分鐘）」，沿途有多處長椅供歇腳。" },
+                            { time: "15:30", name: "市區星級飯店 Check-in", detail: "抵達市區星級大飯店。特別空出 2 小時讓長輩在房間睡個午覺、梳洗熱水澡，緩解舟車疲勞。" },
+                            { time: "18:00", name: "晚餐：信義區精緻台菜 (如欣葉)", detail: "在寬敞明亮的頂級台菜餐館用餐。環境無障礙設施全備，經典菜色溫潤軟嫩、不油膩，極適合長輩胃口。" }
+                        ]
+                    },
+                    2: {
+                        title: "港灣彩色屋與故宮國寶洗禮",
+                        desc: "今日結合了壯麗的海洋風情與中華文化經典。上午漫步正濱彩色漁港與和平島，下午進入故宮吹冷氣細細觀賞國寶，晚上直接就近在故宮晶華用餐，免去頻繁上下車折騰。",
+                        optimization: "下午參觀故宮博大精深，館內設有全程無障礙電梯與多處座椅，並提供免費輪椅、放大鏡借用。晚餐就近安排在故宮晶華，少一次吹風和搬動過程。",
+                        note: "⚠️特別注意：下午從金山回台北若長輩有易暈車者，大客車將放棄陡彎的陽金公路，改走平穩的高速公路回市區！",
+                        intensity: 50,
+                        intensityLabel: "適中步調",
+                        events: [
+                            { time: "08:30", name: "晨喚晨光早餐", detail: "在飯店享受精緻慢食早餐，隨後大客車出發前往美麗的基隆港灣。" },
+                            { time: "09:45", name: "正濱彩色屋 & 和平島看海", detail: "在基隆正濱漁港彩色屋拍照留念。隨後走和平島平緩無障礙步道，居高臨下看海、吹海風，不累又好看。" },
+                            { time: "12:00", name: "午餐：金山順發海鮮大餐", detail: "長輩最期待的海產盛宴！享用肥美現撈海鮮與特色熱炒。慢食 2 小時，用餐氣氛輕鬆活潑。" },
+                            { time: "14:00", name: "平穩北上車程 (防暈車優化)", detail: "大客車避開多彎山路（陽金公路），改走基金公路高架接高速公路。一路平穩，長輩可安穩在車上午睡。" },
+                            { time: "15:00", name: "國立故宮博物院觀國寶", detail: "在舒適冷氣室內觀賞翠玉白菜、肉形石。館內有無障礙電梯，提供免費輪椅，導遊細心帶領，省時又省體力。" },
+                            { time: "18:00", name: "晚餐：故宮晶華府城晶華", detail: "晚上直接在院區旁的故宮晶華享用晚宴，不需再搭車。古色古香的經典名菜，長輩尊榮感十足，飯後輕鬆回飯店。" }
+                        ]
+                    },
+                    3: {
+                        title: "松菸文創巴洛克花園與懷舊歸賦",
+                        desc: "最後一天慢步松山文創園區。這裡有極美平緩的巴洛克花園、老製菸廠古蹟。中午享用老台北懷舊台菜後，帶上滿滿伴手禮平安歸家。",
+                        optimization: "松山文創園區全區無階梯，洗手間密度高且乾淨，巴洛克花園設有大量雙人長椅，隨時可以坐下歇息拍照。",
+                        note: "誠品文創大樓內有冷氣與精緻文創伴手禮，極適合長輩悠閒採購。",
+                        intensity: 35,
+                        intensityLabel: "極其放鬆",
+                        events: [
+                            { time: "09:30", name: "松菸巴洛克花園慢步", detail: "漫步在老製菸廠古蹟與歐式花園池塘中。全平路，綠意盎然。長輩可在長椅上悠閒聊天、拍照。" },
+                            { time: "11:30", name: "午餐：市區老字號懷舊台菜", detail: "精選台北老字號精緻中式餐廳，享用軟嫩易入口的精緻大桌合菜，為旅程畫下完美句點。" },
+                            { time: "13:30", name: "伴手禮選購與快樂賦歸", detail: "上車南下回高雄。中途停靠清水服務區，方便長輩如廁，並可選購台中太陽餅、中部特色伴手禮。" },
+                            { time: "19:30", name: "平安抵達高雄", detail: "遊覽車平穩駛入高雄，導遊協助提行李，平安將長輩送回，留下滿滿的三日珍貴回憶。" }
+                        ]
+                    }
+                }
+            }
+        };
+
+        let currentScheme = 'A';
+        let currentDay = 1;
+        let radarChartInstance = null;
+        let doughnutChartInstance = null;
+
+        function switchScheme(schemeCode) {
+            currentScheme = schemeCode;
+            currentDay = 1; // 切換方案時預設回到 Day 1
+
+            // 1. 切換 Body 主題 Class
+            document.body.classList.remove('scheme-b-theme', 'scheme-c-theme');
+            document.getElementById('scheme-btn-A').classList.remove('tab-active');
+            document.getElementById('scheme-btn-B').classList.remove('tab-active');
+            document.getElementById('scheme-btn-C').classList.remove('tab-active');
+            document.getElementById('scheme-btn-A').classList.add('text-gray-500');
+            document.getElementById('scheme-btn-B').classList.add('text-gray-500');
+            document.getElementById('scheme-btn-C').classList.add('text-gray-500');
+
+            if (schemeCode === 'B') {
+                document.body.classList.add('scheme-b-theme');
+                document.getElementById('scheme-btn-B').classList.add('tab-active');
+                document.getElementById('scheme-btn-B').classList.remove('text-gray-500');
+            } else if (schemeCode === 'C') {
+                document.body.classList.add('scheme-c-theme');
+                document.getElementById('scheme-btn-C').classList.add('tab-active');
+                document.getElementById('scheme-btn-C').classList.remove('text-gray-500');
+            } else {
+                document.getElementById('scheme-btn-A').classList.add('tab-active');
+                document.getElementById('scheme-btn-A').classList.remove('text-gray-500');
+            }
+
+            // 2. 更新英雄區與標題文字
+            const data = schemesData[schemeCode];
+            document.getElementById('scheme-badge').innerText = data.badge;
+            document.getElementById('hero-title').innerText = data.heroTitle;
+            document.getElementById('hero-desc').innerText = data.heroDesc;
+            document.getElementById('itinerary-sec-title').innerText = data.itinerarySecTitle;
+
+            // 3. 渲染避坑指南
+            renderSafetyGuides(schemeCode);
+
+            // 4. 更新行程內容與圖表
+            switchDay(1);
+            updateCharts();
+            loadPackingState();
+        }
+
+        function renderSafetyGuides(schemeCode) {
+            const container = document.getElementById('safety-cards-container');
+            container.innerHTML = '';
+            
+            const guides = schemesData[schemeCode].safetyGuides;
+            guides.forEach((guide, index) => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-6 rounded-2xl border border-gray-100 card-shadow hover:border-[var(--primary)] transition-all duration-300";
+                card.innerHTML = `
+                    <div class="flex items-start space-x-3">
+                        <span class="text-xl mt-0.5">💡</span>
+                        <div class="w-full">
+                            <h4 class="font-bold text-base text-gray-800 flex items-center justify-between">
+                                <span>防護 ${index + 1}：${guide.title}</span>
+                                <span class="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full font-bold">已優化避坑</span>
+                            </h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 pt-3 border-t border-gray-50 text-xs md:text-sm">
+                                <div class="bg-red-50/50 p-3 rounded-xl border border-red-100/50">
+                                    <span class="font-bold text-red-800 block mb-1">🚨 傳統盲點與風險：</span>
+                                    <p class="text-gray-600 leading-relaxed">${guide.risk}</p>
+                                </div>
+                                <div class="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100/50">
+                                    <span class="font-bold text-emerald-800 block mb-1">✅ 慢活護老對策：</span>
+                                    <p class="text-gray-600 leading-relaxed">${guide.solution}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function switchDay(dayNum) {
+            currentDay = dayNum;
+
+            // 更新按鈕 Active 樣式
+            for (let i = 1; i <= 3; i++) {
+                const btn = document.getElementById(`btn-day${i}`);
+                if (i === dayNum) {
+                    btn.classList.add('tab-active');
+                } else {
+                    btn.classList.remove('tab-active');
+                }
+            }
+
+            const data = schemesData[currentScheme].days[dayNum];
+            
+            // 更新右側側邊欄細節
+            document.getElementById('day-title').innerText = data.title;
+            document.getElementById('day-desc').innerText = data.desc;
+            document.getElementById('day-opt').innerText = data.optimization;
+            document.getElementById('day-note').innerText = data.note;
+            document.getElementById('intensity-val').innerText = data.intensityLabel;
+            
+            // 變更強度條長度
+            const bar = document.getElementById('intensity-bar');
+            bar.style.width = data.intensity + '%';
+
+            // 清空並重新渲染時序列表
+            const listContainer = document.getElementById('timeline-list');
+            listContainer.innerHTML = ''; 
+
+            data.events.forEach((ev, idx) => {
+                const item = document.createElement('div');
+                item.className = 'relative mb-8 opacity-0 transform translate-x-4 transition-all duration-500 print-card';
+                item.style.transitionDelay = `${idx * 80}ms`;
+                item.innerHTML = `
+                    <div class="timeline-dot"></div>
+                    <div class="bg-white p-5 rounded-2xl border border-gray-100 card-shadow hover:border-l-4 hover:border-l-[var(--primary)] transition-all duration-300">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-xs font-bold text-[var(--secondary)] bg-[var(--secondary-light)] px-2.5 py-1 rounded-full transition-all">${ev.time}</span>
+                            <span class="text-[10px] text-gray-400 font-medium">✨ 護老安全站</span>
+                        </div>
+                        <h5 class="font-bold text-base md:text-lg mb-1.5 text-gray-800">${ev.name}</h5>
+                        <p class="text-xs md:text-sm text-gray-500 leading-relaxed">${ev.detail}</p>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+                
+                // 觸發動態入場動畫
+                setTimeout(() => {
+                    item.classList.remove('opacity-0', 'translate-x-4');
+                }, 50);
+            });
+        }
+
+        function initCharts() {
+            // 雷達圖
+            const radarCtx = document.getElementById('radarChart').getContext('2d');
+            const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#7D8F69';
+
+            radarChartInstance = new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['文化豐富度', '平均步行強度', '休息頻率', '膝關節負載', '餐食舒適度'],
+                    datasets: [{
+                        label: '慢活行程 (本案)',
+                        data: schemesData[currentScheme].radarData,
+                        backgroundColor: 'rgba(44, 94, 67, 0.15)',
+                        borderColor: primaryColor,
+                        pointBackgroundColor: primaryColor,
+                        borderWidth: 2
+                    }, {
+                        label: '傳統趕路行程',
+                        data: [75, 80, 35, 85, 55],
+                        backgroundColor: 'rgba(160, 82, 45, 0.1)',
+                        borderColor: '#E53E3E',
+                        pointBackgroundColor: '#E53E3E',
+                        borderWidth: 1,
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { display: false },
+                            grid: { color: '#E2E8F0' },
+                            angleLines: { color: '#E2E8F0' },
+                            pointLabels: {
+                                font: {
+                                    family: 'Noto Sans TC',
+                                    size: 11,
+                                    weight: 'bold'
+                                },
+                                color: '#4A5568'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { 
+                            position: 'bottom',
+                            labels: { font: { family: 'Noto Sans TC', size: 11 } }
+                        }
+                    }
+                }
+            });
+
+            // 圓環圖
+            const doughnutCtx = document.getElementById('doughnutChart').getContext('2d');
+            doughnutChartInstance = new Chart(doughnutCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['景點慢遊停留', '餐敘充裕時間', '交通如廁放鬆', '飯店小憩緩衝'],
+                    datasets: [{
+                        data: schemesData[currentScheme].doughnutData,
+                        backgroundColor: ['#7D8F69', '#C5A059', '#E6E2D3', '#3E3B39'],
+                        borderWidth: 0,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    cutout: '68%',
+                    plugins: {
+                        legend: { 
+                            position: 'bottom',
+                            labels: { font: { family: 'Noto Sans TC', size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCharts() {
+            if (!radarChartInstance || !doughnutChartInstance) return;
+
+            const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+            const secondaryColor = getComputedStyle(document.documentElement).getPropertyValue('--secondary').trim();
+
+            // 1. 更新雷達圖數據與色彩
+            radarChartInstance.data.datasets[0].data = schemesData[currentScheme].radarData;
+            radarChartInstance.data.datasets[0].borderColor = primaryColor;
+            radarChartInstance.data.datasets[0].pointBackgroundColor = primaryColor;
+            radarChartInstance.data.datasets[0].backgroundColor = primaryColor + '26'; // 15% 透明度
+            radarChartInstance.update();
+
+            // 2. 更新圓環圖數據與色彩
+            doughnutChartInstance.data.datasets[0].data = schemesData[currentScheme].doughnutData;
+            
+            // 根據方案切換圓環配色
+            if (currentScheme === 'B') {
+                doughnutChartInstance.data.datasets[0].backgroundColor = ['#517E8E', '#CC8B65', '#DCE6E9', '#2F393B'];
+            } else if (currentScheme === 'C') {
+                doughnutChartInstance.data.datasets[0].backgroundColor = ['#2C5E43', '#A0522D', '#D4AF37', '#4A5568'];
+            } else {
+                doughnutChartInstance.data.datasets[0].backgroundColor = ['#7D8F69', '#C5A059', '#E6E2D3', '#3E3B39'];
+            }
+            doughnutChartInstance.update();
+        }
+
+        function toggleCheck(el, itemKey) {
+            const circle = el.querySelector('.check-circle');
+            const isChecked = circle.innerHTML === '✓';
+            
+            if (isChecked) {
+                circle.innerHTML = '';
+                el.classList.remove('bg-white/20');
+                localStorage.setItem(`pack_${currentScheme}_${itemKey}`, 'false');
+            } else {
+                circle.innerHTML = '✓';
+                el.classList.add('bg-white/20');
+                localStorage.setItem(`pack_${currentScheme}_${itemKey}`, 'true');
+            }
+        }
+
+        // 載入 localStorage 的打包狀態
+        function loadPackingState() {
+            const items = ['shoe', 'bottle', 'coat', 'med'];
+            items.forEach(item => {
+                const stored = localStorage.getItem(`pack_${currentScheme}_${item}`);
+                const circle = document.getElementById(`check-${item}`);
+                const parent = circle.parentElement;
+                
+                if (stored === 'true') {
+                    circle.innerHTML = '✓';
+                    parent.classList.add('bg-white/20');
+                } else {
+                    circle.innerHTML = '';
+                    parent.classList.remove('bg-white/20');
+                }
+            });
+        }
+
+        // 監聽視窗載入，啟動系統
+        window.onload = () => {
+            // 初始化為方案 A
+            switchScheme('A');
+            initCharts();
+            loadPackingState();
+        };
+    </script>
+</body>
+</html>
