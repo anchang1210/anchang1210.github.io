@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>樂齡北台灣尊榮之旅 - 方案評估系統</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet Map CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Custom scrollbar for better styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        /* For printing beautiful PDF */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background-color: white !important;
+            }
+            .print-card {
+                border: 1px solid #e2e8f0 !important;
+                box-shadow: none !important;
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Header banner with elegant illustration vibe -->
+    <header class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-md relative overflow-hidden no-print">
+        <div class="absolute inset-0 bg-opacity-20 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-yellow-200 via-transparent to-transparent"></div>
+        <div class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 relative z-10">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/30 text-emerald-100 border border-emerald-400/30 mb-3">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        樂齡專屬（避開階梯、行程和緩、注重休息）
+                    </span>
+                    <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">北台灣三日尊榮悠遊行程</h1>
+                    <p class="mt-2 text-teal-100 max-w-2xl text-sm md:text-base">專為高雄出發之家族長輩設計，融合文化古蹟、無障礙步道與頂級北海岸海鮮佳餚。全程時間充裕、體力消耗低。</p>
+                </div>
+                <div class="flex flex-wrap gap-2 shrink-0">
+                    <button onclick="window.print()" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2.5 rounded-xl font-medium text-white transition-all text-sm backdrop-blur">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        列印/匯出 PDF
+                    </button>
+                    <a href="#customizer" class="inline-flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-teal-950 px-4 py-2.5 rounded-xl font-semibold transition-all text-sm shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        預算速算
+                    </a>
+                </div>
+            </div>
+
+            <!-- Tabs container for A, B, C -->
+            <div class="flex space-x-2 mt-8 overflow-x-auto pb-1 border-b border-white/10">
+                <button onclick="switchScheme('A')" id="btn-scheme-A" class="px-5 py-3 rounded-t-xl font-semibold text-sm transition-all whitespace-nowrap flex items-center gap-2 bg-white text-teal-900 shadow-sm border-t-2 border-emerald-500">
+                    <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-xs flex items-center justify-center font-bold">A</span>
+                    方案 A：懷舊經典與山海祈福
+                </button>
+                <button onclick="switchScheme('B')" id="btn-scheme-B" class="px-5 py-3 rounded-t-xl font-semibold text-sm text-teal-100 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-teal-800 text-teal-100 text-xs flex items-center justify-center font-bold">B</span>
+                    方案 B：樂活溫泉與文化生態
+                </button>
+                <button onclick="switchScheme('C')" id="btn-scheme-C" class="px-5 py-3 rounded-t-xl font-semibold text-sm text-teal-100 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-teal-800 text-teal-100 text-xs flex items-center justify-center font-bold">C</span>
+                    方案 C：芬多精森林與都會大器
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area Grid -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: Itinerary Details & Timeline (8 Columns on desktop) -->
+        <section class="lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- Quick Summary Panel -->
+            <div id="scheme-summary" class="bg-gradient-to-br from-emerald-50 to-teal-50/30 border border-emerald-100/80 rounded-2xl p-5 shadow-sm">
+                <div class="flex items-start gap-4">
+                    <div class="p-3 bg-emerald-600 text-white rounded-xl shadow-md shrink-0" id="summary-icon">
+                        <!-- Icon loaded dynamically -->
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800" id="scheme-title">【方案 A：懷舊經典與山海祈福之旅】</h2>
+                        <p class="text-sm text-slate-600 mt-1 leading-relaxed" id="scheme-description">
+                            此方案著重於台灣經典景點與廟宇祈福，景點步道全線平緩無階梯。最適合喜愛傳統懷舊、熱愛參拜與欣賞經典地標的長輩，節奏張弛有度。
+                        </p>
+                        <!-- Highlights badge bar -->
+                        <div class="flex flex-wrap gap-2 mt-3" id="scheme-highlights">
+                            <!-- Populated Dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day Selector (Day 1, Day 2, Day 3) -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-2.5 flex gap-2 no-print">
+                <button onclick="switchDay(1)" id="btn-day-1" class="flex-1 py-3 px-4 rounded-lg font-bold text-sm text-center transition-all bg-emerald-600 text-white shadow-sm flex items-center justify-center gap-1.5">
+                    <span>第一天</span>
+                    <span class="text-xs font-normal opacity-90" id="label-day1-title">高雄➔台北懷舊</span>
+                </button>
+                <button onclick="switchDay(2)" id="btn-day-2" class="flex-1 py-3 px-4 rounded-lg font-bold text-sm text-center transition-all text-slate-600 hover:text-slate-800 hover:bg-slate-50 flex items-center justify-center gap-1.5">
+                    <span>第二天</span>
+                    <span class="text-xs font-normal opacity-75" id="label-day2-title">北海岸➔金山海產</span>
+                </button>
+                <button onclick="switchDay(3)" id="btn-day-3" class="flex-1 py-3 px-4 rounded-lg font-bold text-sm text-center transition-all text-slate-600 hover:text-slate-800 hover:bg-slate-50 flex items-center justify-center gap-1.5">
+                    <span>第三天</span>
+                    <span class="text-xs font-normal opacity-75" id="label-day3-title">古剎祈福➔回高雄</span>
+                </button>
+            </div>
+
+            <!-- Day Route Subtitle -->
+            <div class="flex items-center justify-between mt-2 px-1">
+                <div class="flex items-center gap-2">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-1.5" id="day-route-header">
+                        Day 1 行程明細
+                    </h3>
+                </div>
+                <span class="text-xs text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full font-medium" id="day-route-tag">
+                    全程無急促步行
+                </span>
+            </div>
+
+            <!-- Timeline Cards -->
+            <div class="space-y-4 relative before:absolute before:inset-y-0 before:left-6 md:before:left-8 before:w-0.5 before:bg-slate-200/80" id="timeline-container">
+                <!-- Dynamically generated timeline nodes -->
+            </div>
+
+        </section>
+
+        <!-- Right: Map, Elderly-Care Advice & Interactive widgets (4 Columns on desktop) -->
+        <section class="lg:col-span-4 flex flex-col gap-6 no-print">
+            
+            <!-- Map Container Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
+                <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <span class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                        <svg class="w-4.5 h-4.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        今日行車路線地圖
+                    </span>
+                    <span class="text-[11px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">高屏發車</span>
+                </div>
+                <!-- Interactive Leaflet Map -->
+                <div id="map" class="h-80 w-full z-0"></div>
+                <div class="p-3 bg-slate-50 text-[11px] text-slate-500 flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    地圖縮放可預覽景點相對位置，藍線為建議行駛高速公路/省道。
+                </div>
+            </div>
+
+            <!-- Senior Care Specific Reminder Cards -->
+            <div class="bg-amber-50/40 border border-amber-200/80 rounded-2xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="p-1 bg-amber-500 text-white rounded-lg">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    </span>
+                    <h4 class="font-bold text-slate-800 text-sm">長輩隨行貼心提醒</h4>
+                </div>
+                <ul class="space-y-2.5 text-xs text-slate-600 leading-relaxed">
+                    <li class="flex items-start gap-1.5">
+                        <span class="text-amber-600 font-bold">●</span>
+                        <span><strong>如廁頻率：</strong>遊覽車南來北往時間較長，每 1.5 ~ 2 小時已妥善規劃停靠國道服務區（如關西、泰安、西螺等），切勿憋尿。</span>
+                    </li>
+                    <li class="flex items-start gap-1.5">
+                        <span class="text-amber-600 font-bold">●</span>
+                        <span><strong>海陸溫差：</strong>北海岸、野柳、漁人碼頭等臨海景點海風較大，建議車上備妥防風防曬外套、圍巾、寬帽。</span>
+                    </li>
+                    <li class="flex items-start gap-1.5">
+                        <span class="text-amber-600 font-bold">●</span>
+                        <span><strong>行動輔具：</strong>所選景點（如大板根一環、野柳步道、陶瓷博物館、漁人碼頭）皆具有極佳無障礙輪椅平道。</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Interactive Budget Tool -->
+            <div id="customizer" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex flex-col gap-4">
+                <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2 border-b border-slate-100 pb-2">
+                    <svg class="w-4.5 h-4.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    簡易費用速算器 (長輩貼心估算)
+                </h4>
+                <div>
+                    <label class="block text-xs text-slate-500 font-medium mb-1">預計同行人數 (人)</label>
+                    <input oninput="calculateBudget()" id="input-people" type="number" value="6" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-500 font-medium mb-1">估算住宿等級 (每房/晚)</label>
+                    <select onchange="calculateBudget()" id="select-hotel" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-emerald-500">
+                        <option value="4000">高級商旅 (約 $4,000/晚)</option>
+                        <option value="6500" selected>五星尊榮 / 溫泉度假村 (約 $6,500/晚)</option>
+                        <option value="9000">極致奢華房型 (約 $9,000/晚)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-500 font-medium mb-1">交通工具</label>
+                    <select onchange="calculateBudget()" id="select-transport" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-emerald-500">
+                        <option value="12000">中巴(含司導領) $12,000/天</option>
+                        <option value="16000" selected>豪華大巴(含司導領) $16,000/天</option>
+                        <option value="5000">自駕多台房車 (油資過路費預估)</option>
+                    </select>
+                </div>
+                <div class="bg-slate-50 rounded-xl p-3 border border-slate-100 flex flex-col gap-1.5">
+                    <div class="flex justify-between text-xs text-slate-500">
+                        <span>預估交通 (3天)：</span>
+                        <span id="calc-transport-fee">$0</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-500">
+                        <span>預估住宿 (2晚)：</span>
+                        <span id="calc-hotel-fee">$0</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-500">
+                        <span>餐食/門票雜費 (每人)：</span>
+                        <span>$3,500 (含高檔順發海產、精緻合菜)</span>
+                    </div>
+                    <div class="h-[1px] bg-slate-200 my-1"></div>
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-slate-700 text-sm">預估總額：</span>
+                        <span class="font-extrabold text-emerald-600 text-base" id="calc-total-fee">$0</span>
+                    </div>
+                    <div class="flex justify-between items-center text-[10px] text-slate-400">
+                        <span>每人平均：</span>
+                        <span id="calc-avg-fee">$0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Packing check list -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex flex-col gap-3">
+                <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2 border-b border-slate-100 pb-2">
+                    <svg class="w-4.5 h-4.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    長輩行李打包必備清單
+                </h4>
+                <div class="space-y-2 text-xs text-slate-600">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                        <span>個人常用慢性病藥物（建議多備一天份）</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                        <span>防風/保暖外套 (海風大時可用)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                        <span>健保卡、身分證、優待票身分證件</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                        <span>好穿脫的健走鞋 (免繫鞋帶更佳)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                        <span>折疊式雨傘或輕便雨衣</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Print only view: Hidden in UI but beautifully formatted in PDF printing -->
+    <section class="hidden print:block p-8 bg-white max-w-4xl mx-auto">
+        <h1 class="text-3xl font-extrabold text-slate-800 border-b-2 border-emerald-600 pb-2 text-center">北台灣樂齡尊榮之旅 - 詳細行程表</h1>
+        <p class="text-xs text-slate-500 text-center mt-2 mb-6">列印時間：2026/05/26 ． 出發地：高雄</p>
+        
+        <div id="print-all-itineraries" class="space-y-8">
+            <!-- All days will be appended here for clear printing without interactive buttons -->
+        </div>
+    </section>
+
+    <!-- Footer block -->
+    <footer class="bg-slate-900 text-slate-400 py-6 mt-12 border-t border-slate-800 text-xs no-print">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-2">
+            <p class="text-slate-300 font-medium">樂齡尊榮北台灣旅遊方案規劃系統</p>
+            <p>本系統行程精心調校，著重於避開多階梯步道、控制乘車時長、拉長精緻海鮮午餐及溫泉放鬆時間。</p>
+            <p class="text-slate-600">© 2026 樂活悠遊旅遊規劃網. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Itinerary database incorporating the exact coordinates, times, descriptions and markers for mapping
+        const itineraries = {
+            'A': {
+                title: '【方案 A：懷舊經典與山海祈福之旅】',
+                description: '此方案精心結合老街文化、歷史地標與傳統信仰。第一天體驗大溪中式合菜與中正紀念堂的莊嚴儀隊；第二天專注於步道最平緩、地景最奇特的外海野柳，並在金山順發海產慢慢享用海鮮；最後一天萬華龍山寺拜拜祈福後舒緩南下，是喜愛經典景點長輩的完美首選。',
+                highlights: ['儀隊交接', '野柳平緩步道', '九份老街平緩線', '萬華龍山寺古剎', '宮原眼科/伴手禮'],
+                colorClass: 'emerald',
+                days: {
+                    1: {
+                        route: '高雄出發 ➔ 台北懷舊風情',
+                        tag: '路況極平緩 ． 重點儀隊交接',
+                        mapCenter: [24.4, 121.1],
+                        zoom: 8,
+                        polyline: [
+                            [22.6273, 120.3014], // 高雄
+                            [24.8817, 121.2885], // 大溪老街
+                            [25.0343, 121.5217], // 中正紀念堂
+                            [25.0420, 121.5350]  // 台北飯店/圓山
+                        ],
+                        markers: [
+                            { coords: [22.6273, 120.3014], title: '07:00 高雄出發' },
+                            { coords: [24.8817, 121.2885], title: '11:30 中餐：大溪老街周邊中式合菜' },
+                            { coords: [25.0343, 121.5217], title: '14:30 景點：中正紀念堂 (全平路看儀隊交接)' },
+                            { coords: [25.0420, 121.5350], title: '18:00 晚餐：圓山大飯店中式合菜/市區台菜' }
+                        ],
+                        schedule: [
+                            { time: '07:00 ~ 11:30', type: 'transport', title: '高雄出發 ➔ 國道服務區休息', desc: '豪華大巴出發，中途停靠泰安/關西服務區，預留足夠洗手間與伸展時間，免急促。' },
+                            { time: '11:30 ~ 13:00', type: 'food', title: '中餐：大溪老街周邊精緻中式合菜', desc: '精選鄰近道路、好停車且免上下大坡的合菜餐廳，長輩不需費力走路。' },
+                            { time: '13:00 ~ 14:30', type: 'transport', title: '車程接駁 ➔ 舒適小憩直達台北', desc: '在寬敞大巴上舒舒服服睡個午覺，精神飽滿。' },
+                            { time: '14:30 ~ 16:30', type: 'attraction', title: '景點：中正紀念堂 (賞花與15:00儀隊交接)', desc: '院內皆為無障礙、寬敞平坦平路。安排觀看整點英勇帥氣的儀隊交接儀式，長輩超愛！', tag: '最省力行程' },
+                            { time: '16:30 ~ 17:00', type: 'hotel', title: '飯店 Check-in 辦理入住', desc: '返回市區尊榮飯店（如台北圓山大飯店或汐止一帶高級飯店），進房洗漱休息。' },
+                            { time: '18:00 ~ 19:30', type: 'food', title: '晚餐：圓山大飯店中式合菜 / 市區高檔台菜', desc: '精緻圍桌台菜，少油少鹽、極好入口，慢慢品嚐暢談。' }
+                        ]
+                    },
+                    2: {
+                        route: '北海岸海景 ➔ 金山海產大餐',
+                        tag: '海風防風外套 ． 海味雙重享受',
+                        mapCenter: [25.15, 121.7],
+                        zoom: 10,
+                        polyline: [
+                            [25.0420, 121.5350], // 台北市區
+                            [25.2064, 121.6905], // 野柳地質公園
+                            [25.2215, 121.6375], // 金山順發海產
+                            [25.1099, 121.8452]  // 九份老街
+                        ],
+                        markers: [
+                            { coords: [25.2064, 121.6905], title: '09:30 景點：野柳地質公園 (步道平緩無階梯)' },
+                            { coords: [25.2215, 121.6375], title: '12:00 午餐指定：金山順發海產 (海鮮大餐慢慢享受 2 小時)' },
+                            { coords: [25.1099, 121.8452], title: '15:00 景點：九份老街 (車停派出所旁，只逛平緩基山街)' }
+                        ],
+                        schedule: [
+                            { time: '08:30 ~ 09:30', type: 'transport', title: '晨喚出發 ➔ 經高速公路前往野柳', desc: '飯店享用完精緻早餐後出發。' },
+                            { time: '09:30 ~ 11:30', type: 'attraction', title: '景點：野柳地質公園', desc: '野柳風景區設有全新平緩觀海無障礙步道，沿途不需走陡峭階梯，輕鬆與女王頭或蕈狀石拍照留念。海風稍大記得攜帶外套。', tag: '平緩好走' },
+                            { time: '11:30 ~ 12:00', type: 'transport', title: '車程接駁 ➔ 沿北海岸景觀公路前往金山', desc: '欣賞東北角壯麗的海浪。' },
+                            { time: '12:00 ~ 14:00', type: 'food', title: '午餐指定：金山順發海產 (招牌澎湃餐)', desc: '特別安排【金山順發海產】享受在地最新鮮現撈的海鮮料理（避開金包里老街人擠人排隊，舒適用餐2小時）。', tag: '長輩必吃推薦' },
+                            { time: '14:00 ~ 15:00', type: 'transport', title: '車程接駁 ➔ 途經基隆前往九份', desc: '一路上依山傍海，景色宜人。' },
+                            { time: '15:00 ~ 17:00', type: 'attraction', title: '景點：九份老街慢漫遊', desc: '貼心安排：遊覽車/中巴特別停靠在靠近老街的「派出所旁」，直接進入平緩的基山街，品嚐草仔粿、熱芋圓，避開崎嶇的豎崎路（不爬石階），悠閒懷舊。', tag: '特別無障礙規劃' },
+                            { time: '17:00 ~ 18:30', type: 'transport', title: '車程南下返回飯店', desc: '在車上好好休息。' },
+                            { time: '18:30 ~ 20:00', type: 'food', title: '晚餐：精緻合菜 或 基隆廟口自由覓食', desc: '可依據長輩當日體力，選擇由車子接送至廟口自由品嚐營養三明治、一口香腸，或是前往安靜飯店餐廳用餐。' }
+                        ]
+                    },
+                    3: {
+                        route: '古剎祈福 ➔ 歡樂回程高雄',
+                        tag: '保佑平安 ． 伴手禮滿載歸',
+                        mapCenter: [23.9, 120.9],
+                        zoom: 8,
+                        polyline: [
+                            [25.0420, 121.5350], // 台北
+                            [25.0368, 121.4999], // 龍山寺
+                            [24.1378, 120.6834], // 台中宮原眼科
+                            [22.6273, 120.3014]  // 高雄
+                        ],
+                        markers: [
+                            { coords: [25.0368, 121.4999], title: '09:00 萬華龍山寺參拜祈福' },
+                            { coords: [24.1378, 120.6834], title: '13:30 買伴手禮、吃冰：宮原眼科' },
+                            { coords: [22.6273, 120.3014], title: '19:00 預計抵達高雄' }
+                        ],
+                        schedule: [
+                            { time: '09:00 ~ 10:30', type: 'attraction', title: '景點：萬華龍山寺 (百年古剎參拜)', desc: '台北歷史最悠久的觀音古剎，全區廟埕皆為平滑石板地。帶領長輩雙手合十參拜、抽籤祈求全家平安、安享晚年。', tag: '心靈平靜' },
+                            { time: '10:30 ~ 12:00', type: 'transport', title: '車程南下 ➔ 朝苗栗/台中進發', desc: '車速平穩。' },
+                            { time: '12:00 ~ 13:30', type: 'food', title: '午餐：台中/苗栗精緻客家菜合菜', desc: '品嚐道地的客家小炒、薑絲大腸與封肉。' },
+                            { time: '13:30 ~ 15:00', type: 'attraction', title: '景點：宮原眼科 或 太陽堂老店', desc: '帶長輩看看日式老診所改建的藝術地標、吃一球純手工冰淇淋。在這裡買精美中式伴手禮（土鳳梨酥、太陽餅）分送鄰里。', tag: '網美打卡伴手禮' },
+                            { time: '15:00 ~ 19:00', type: 'transport', title: '國道南迴 ➔ 傍晚溫馨抵達高雄', desc: '沿途停靠東山或新營服務區舒緩筋骨，預計晚間 19:00 滿載笑容平安回到高雄。' }
+                        ]
+                    }
+                }
+            },
+            'B': {
+                title: '【方案 B：樂活溫泉與文化生態之旅】',
+                description: '此方案結合藝術體驗、森林溫泉與海景休閒。第一天造訪冷氣無障礙的鶯歌陶瓷博物館與北投溫泉博物館；第二天探訪陽明山小油坑壯麗硫磺口，中午享用金山順發海產，傍晚於淡水漁人碼頭平緩木棧道欣賞無敵落日；第三天漫步士林官邸美景，極度適合熱愛養生與慢步調的長輩。',
+                highlights: ['陶瓷美學', '北投溫泉泡湯', '小油坑免走步道', '淡水漁人碼頭夕陽', '士林官邸玫瑰花園'],
+                colorClass: 'teal',
+                days: {
+                    1: {
+                        route: '高雄出發 ➔ 鶯歌藝術與北投溫泉',
+                        tag: '藝術薰陶 ． 溫泉泡湯雙重享樂',
+                        mapCenter: [24.4, 121.1],
+                        zoom: 8,
+                        polyline: [
+                            [22.6273, 120.3014], // 高雄
+                            [24.9546, 121.3501], // 鶯歌陶瓷博物館
+                            [25.1382, 121.5117], // 北投溫泉博物館
+                            [25.1360, 121.5061]  // 北投飯店
+                        ],
+                        markers: [
+                            { coords: [22.6273, 120.3014], title: '07:00 高雄出發' },
+                            { coords: [24.9546, 121.3501], title: '13:00 景點：鶯歌陶瓷博物館 (無障礙與冷氣舒適)' },
+                            { coords: [25.1382, 121.5117], title: '16:00 景點：北投地熱谷、溫泉博物館 (硫磺平緩木棧道)' },
+                            { coords: [25.1360, 121.5061], title: '17:30 入住北投溫泉飯店 + 享用精緻酒家菜' }
+                        ],
+                        schedule: [
+                            { time: '07:00 ~ 11:30', type: 'transport', title: '高雄出發 ➔ 國道舒適北上', desc: '豪華遊覽車出發，備妥抱枕。中途停靠西螺與湖口服務區，提供充足伸展時間。' },
+                            { time: '11:30 ~ 13:00', type: 'food', title: '午餐：三峽或鶯歌特色台菜合菜', desc: '享用懷舊風味、好入口的三峽放山雞、燜肉等豐富午膳。' },
+                            { time: '13:00 ~ 15:00', type: 'attraction', title: '景點：鶯歌陶瓷博物館', desc: '全館設有完善無障礙電梯與緩坡，冷氣舒適宜人。帶領長輩觀賞陶瓷歷史精品、輕鬆悠閒。', tag: '室內冷氣無障礙' },
+                            { time: '15:00 ~ 16:00', type: 'transport', title: '車程接駁 ➔ 直達台北北投溫泉鄉', desc: '穿過大屯山群前往北投。' },
+                            { time: '16:00 ~ 17:30', type: 'attraction', title: '景點：北投溫泉博物館、地熱谷', desc: '參觀歷史悠久的羅馬式溫泉浴場，地熱谷煙霧繚繞，設有全新設計、全線平緩的硫磺木棧環湖平道。', tag: '硫磺仙境' },
+                            { time: '17:30 ~ 21:00', type: 'hotel', title: '入住溫泉飯店 ➔ 精緻北投酒家菜 + 泡湯', desc: '入住溫泉度假村。晚餐享用經典「魷魚螺肉蒜」等名家台菜，長輩飯後可在房間泡湯，極致放鬆。', tag: '奢華養生' }
+                        ]
+                    },
+                    2: {
+                        route: '陽明山秀麗風光 ➔ 金山海產 ➔ 淡水暮色',
+                        tag: '壯麗奇景 ． 海味美食 ． 浪漫夕陽',
+                        mapCenter: [25.15, 121.5],
+                        zoom: 10,
+                        polyline: [
+                            [25.1360, 121.5061], // 北投飯店
+                            [25.1764, 121.5450], // 小油坑
+                            [25.2215, 121.6375], // 金山順發海產
+                            [25.1829, 121.4111]  // 淡水漁人碼頭
+                        ],
+                        markers: [
+                            { coords: [25.1764, 121.5450], title: '09:00 車遊陽金公路 ➔ 陽明山小油坑拍照 (免走路)' },
+                            { coords: [25.2215, 121.6375], title: '11:30 午餐指定：金山順發海產 (海味澎湃饗宴)' },
+                            { coords: [25.1829, 121.4111], title: '16:00 景點：淡水漁人碼頭 (慢步平緩木棧道賞夕陽)' }
+                        ],
+                        schedule: [
+                            { time: '09:00 ~ 10:30', type: 'attraction', title: '景點：陽明山小油坑 (車上觀景+免步行拍照)', desc: '車遊美麗的陽金公路，長輩在遊覽車窗即可欣賞火山地貌。抵達小油坑後，觀景台距離停車場僅20公尺，免多走路即可與噴氣口、白霧硫磺合影。', tag: '壯麗自然' },
+                            { time: '10:30 ~ 11:15', type: 'transport', title: '下山車程 ➔ 直達金山北海岸', desc: '沿途公路視野開闊。' },
+                            { time: '11:30 ~ 13:30', type: 'food', title: '午餐指定：金山順發海產', desc: '二度到訪長輩最愛的【金山順發海產】，精心準備現撈清蒸活魚、鮮蝦、澎湃海鮮粥，香甜好消化，慢慢享用 2 小時。', tag: '名店朝聖' },
+                            { time: '13:30 ~ 14:30', type: 'attraction', title: '景點：金包里老街溫馨散步', desc: '帶長輩採買當地特產：蔴粩、手工黑糖、芋粿巧，好帶又好吃。' },
+                            { time: '14:30 ~ 16:00', type: 'transport', title: '北海岸景觀車遊 ➔ 沿途看海', desc: '沿淡金公路前進，長輩在車上可吹冷氣、聽音樂，舒適小憩。' },
+                            { time: '16:00 ~ 18:00', type: 'attraction', title: '景點：淡水漁人碼頭', desc: '漫步全平緩、無階梯的港口木棧道，海風輕拂，一同坐著椅凳欣賞全台最美麗的「淡水八景」金色夕陽。', tag: '平緩看海夕陽' },
+                            { time: '18:30 ~ 20:00', type: 'food', title: '晚餐：淡水在地精緻台菜 ➔ 返回飯店', desc: '在淡水河畔餐館享用合菜，隨後返回飯店休息。' }
+                        ]
+                    },
+                    3: {
+                        route: '官邸花園 ➔ 豐盛回程',
+                        tag: '百花齊放 ． 新竹貢丸米粉',
+                        mapCenter: [23.9, 120.9],
+                        zoom: 8,
+                        polyline: [
+                            [25.1360, 121.5061], // 北投飯店
+                            [25.0903, 121.5298], // 士林官邸
+                            [24.8027, 120.9680], // 新竹城隍廟
+                            [22.6273, 120.3014]  // 高雄
+                        ],
+                        markers: [
+                            { coords: [25.0903, 121.5298], title: '09:00 士林官邸花園 (賞花拍照)' },
+                            { coords: [24.8027, 120.9680], title: '12:30 新竹城隍廟周邊 (貢丸米粉台菜)' },
+                            { coords: [22.6273, 120.3014], title: '18:30 抵達高雄' }
+                        ],
+                        schedule: [
+                            { time: '09:00 ~ 11:00', type: 'attraction', title: '景點：士林官邸花園', desc: '蔣公昔日官邸，花園步道極為平坦，且園內有大量的精美玫瑰花、溫室盆栽、歐式巴洛克庭園。非常適合拍照、留下美麗身影。', tag: '平坦賞花' },
+                            { time: '11:00 ~ 12:30', type: 'transport', title: '大巴南下 ➔ 朝新竹進發', desc: '車況安穩。' },
+                            { time: '12:30 ~ 14:00', type: 'food', title: '午餐：新竹城隍廟周邊 (高檔台菜與精緻小吃)', desc: '免除在廟口擁擠，改在附近具備電梯的合菜餐館，桌上直接點入新竹道地的Q彈貢丸湯、新竹炊粉。' },
+                            { time: '14:00 ~ 18:30', type: 'transport', title: '國道返高 ➔ 清水服務區休息', desc: '在清水服務區買些伴手禮，大約傍晚 18:30 平安抵達高雄。' }
+                        ]
+                    }
+                }
+            },
+            'C': {
+                title: '【方案 C：芬多精森林與都會大器之旅】',
+                description: '此方案偏向自然洗禮與都市奢華、頂級藝文體驗。第一天帶長輩直達大板根森林，沐浴在全台唯一的原生雨林芬多精（只走最輕鬆的平路一環）；第二天走基隆正濱彩色漁港，中午重頭戲【金山順發海產】、下午故宮博物院全程吹冷氣無障礙看國寶；第三天松菸文創悠閒散步，適合喜愛高雅自然、細緻美食與人文景觀的家族。',
+                highlights: ['大板根芬多精', '彩色屋海景', '金山順發海鮮', '故宮國寶導覽', '松菸人文建築'],
+                colorClass: 'emerald',
+                days: {
+                    1: {
+                        route: '高雄出發 ➔ 大板根森林芬多精',
+                        tag: '大氣森林浴 ． 信義商圈高檔晚宴',
+                        mapCenter: [24.4, 121.1],
+                        zoom: 8,
+                        polyline: [
+                            [22.6273, 120.3014], // 高雄
+                            [24.8879, 121.3934], // 大板根
+                            [25.0334, 121.5641]  // 信義區
+                        ],
+                        markers: [
+                            { coords: [22.6273, 120.3014], title: '07:00 高雄出發' },
+                            { coords: [24.8879, 121.3934], title: '11:30 午餐：大板根溫泉酒店精緻合菜' },
+                            { coords: [24.8879, 121.3934], title: '13:00 景點：大板根森林園區 (走平緩一環)' },
+                            { coords: [25.0334, 121.5641], title: '18:00 晚餐：信義區高檔台菜 (欣葉/101)' }
+                        ],
+                        schedule: [
+                            { time: '07:00 ~ 11:30', type: 'transport', title: '高雄出發 ➔ 國道一路安穩北上', desc: '專車平穩出發，停靠清水、泰安服務區，長輩可看電影或在寬敞座位打盹。' },
+                            { time: '11:30 ~ 13:00', type: 'food', title: '午餐：大板根森林溫泉酒店精緻合菜', desc: '在五星級度假酒店內，慢享由大廚特製的森林養生精緻料理。' },
+                            { time: '13:00 ~ 15:30', type: 'attraction', title: '景點：大板根原生雨林 (芬多精大平道)', desc: '此處有著全台唯一的低海拔亞熱帶雨林。貼心引導長輩只走「一環步道（僅20-30分鐘，全線設有扶手、防滑坡道與木棧道）」，免費吸取滿滿的芬多精。', tag: '森林氧吧' },
+                            { time: '15:30 ~ 16:30', type: 'transport', title: '車程接駁 ➔ 直達台北市中心飯店', desc: '前往入住信義區或松山一帶頂級酒店，安置行李與稍微盥洗。' },
+                            { time: '18:00 ~ 20:00', type: 'food', title: '晚餐：信義區或101商圈頂級台菜 (如欣葉)', desc: '品嚐高檔大器的經典台菜（如經典菜煎鮭魚、地瓜粥等），用餐環境極度尊榮大器。', tag: '奢華美食' }
+                        ]
+                    },
+                    2: {
+                        route: '基隆彩色屋 ➔ 金山海產 ➔ 故宮國寶洗禮',
+                        tag: '異國港景 ． 美食傳奇 ． 皇家珍寶',
+                        mapCenter: [25.15, 121.6],
+                        zoom: 10,
+                        polyline: [
+                            [25.0334, 121.5641], // 台北飯店
+                            [25.1530, 121.7684], // 正濱漁港
+                            [25.2215, 121.6375], // 金山順發海產
+                            [25.1023, 121.5485]  // 故宮博物院
+                        ],
+                        markers: [
+                            { coords: [25.1530, 121.7684], title: '09:45 景點：正濱漁港彩色屋' },
+                            { coords: [25.2215, 121.6375], title: '12:00 午餐指定：金山順發海產 (招牌頂級海鮮)' },
+                            { coords: [25.1023, 121.5485], title: '15:00 景點：故宮博物院 (無障礙冷氣遊程)' },
+                            { coords: [25.1023, 121.5485], title: '18:00 晚餐：故宮晶華 (就近免奔波)' }
+                        ],
+                        schedule: [
+                            { time: '08:30 ~ 09:45', type: 'transport', title: '大巴出發 ➔ 朝基隆海岸前進', desc: '欣賞山海相連的美景。' },
+                            { time: '09:45 ~ 11:00', type: 'attraction', title: '景點：正濱漁港彩色屋與和平島', desc: '與基隆正濱漁港一整排威尼斯色調的彩色屋子合影。隨後漫步和平島平緩的海風人行步道，免爬陡坡即可看蔚藍大海。', tag: '拍照打卡極佳' },
+                            { time: '11:00 ~ 11:45', type: 'transport', title: '海岸專車接駁 ➔ 沿北海岸開往金山', desc: '乘車吹著空調休息。' },
+                            { time: '12:00 ~ 14:00', type: 'food', title: '午餐指定：金山順發海產', desc: '大受好評的【金山順發海產】鮮蝦、肥美九孔、鮮美活海魚，專屬桌席，讓長輩吃得安心、吃得奢侈！', tag: '主打必吃海產' },
+                            { time: '14:00 ~ 15:00', type: 'transport', title: '車程接駁 ➔ 沿外環公路返回台北士林', desc: '長輩可在車上香甜午睡。' },
+                            { time: '15:00 ~ 17:00', type: 'attraction', title: '景點：故宮博物院 (全程冷氣+無障礙看國寶)', desc: '特別安排：館內全程配備無障礙電梯與緩坡，不需走戶外陡長階梯。帶領長輩看翠玉白菜、肉形石。安排專用導覽耳機，讓長輩靜心聆聽，不受外界打擾。', tag: '皇家殿堂' },
+                            { time: '18:00 ~ 20:00', type: 'food', title: '晚餐：故宮晶華府城晶華', desc: '免除奔波！直接在故宮園區旁的「故宮晶華」用餐。其仿古優雅環境配上國寶宴特色料理，為長輩提供超高規格的體驗。', tag: '尊榮體驗' }
+                        ]
+                    },
+                    3: {
+                        route: '松菸文創散步 ➔ 歡樂歸賦',
+                        tag: '日式古蹟花園 ． 高雄溫馨歸途',
+                        mapCenter: [23.9, 120.9],
+                        zoom: 8,
+                        polyline: [
+                            [25.0438, 121.5607], // 松山文創
+                            [22.6273, 120.3014]  // 高雄
+                        ],
+                        markers: [
+                            { coords: [25.0438, 121.5607], title: '09:30 景點：松山文創園區 (老菸廠古蹟、平坦花園)' },
+                            { coords: [22.6273, 120.3014], title: '19:30 抵達高雄' }
+                        ],
+                        schedule: [
+                            { time: '09:30 ~ 11:30', type: 'attraction', title: '景點：松山文創園區', desc: '日式巴洛克風格的中庭花園、老菸廠木窗，全區皆為平整柏油/水泥人行道。長輩可在這悠遊看古建築、參觀文創展，悠閒放鬆。', tag: '休閒散步' },
+                            { time: '11:30 ~ 13:30', type: 'food', title: '午餐：台北市區懷舊台菜餐廳', desc: '吃一桌經典古早味菜色，為台北之旅畫下完美句點。' },
+                            { time: '13:30 ~ 19:30', type: 'transport', title: '歡樂南迴 ➔ 傍晚抵達溫暖的高雄', desc: '中途多處國道服務區洗手間停靠，預計於 19:30 安穩抵達高雄，圓滿結束三天極致享受之旅。' }
+                        ]
+                    }
+                }
+            }
+        };
+
+        let currentScheme = 'A';
+        let currentDay = 1;
+        let map;
+        let mapMarkers = [];
+        let mapPolyline = null;
+
+        // Initialize Leaflet Map
+        function initMap() {
+            // Default center around Taiwan
+            map = L.map('map', {
+                scrollWheelZoom: false // disable zoom scroll for better page navigation
+            }).setView([24.4, 121.1], 8);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            updateMapData();
+        }
+
+        // Dynamically update markers and routing lines on Leaflet based on current Scheme and Day
+        function updateMapData() {
+            if (!map) return;
+
+            // Clear existing markers
+            mapMarkers.forEach(marker => map.removeLayer(marker));
+            mapMarkers = [];
+
+            // Clear existing polyline
+            if (mapPolyline) {
+                map.removeLayer(mapPolyline);
+            }
+
+            const dayData = itineraries[currentScheme].days[currentDay];
+            if (!dayData) return;
+
+            // Add new markers with beautiful HTML popups
+            dayData.markers.forEach((m, idx) => {
+                const num = idx + 1;
+                // Create a beautiful custom color numeric marker
+                const customIcon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div class="w-7 h-7 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold text-xs border-2 border-white shadow-lg">${num}</div>`,
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14]
+                });
+
+                const marker = L.marker(m.coords, { icon: customIcon })
+                    .bindPopup(`<div class="font-bold text-sm text-slate-800">${m.title}</div>`)
+                    .addTo(map);
+                mapMarkers.push(marker);
+            });
+
+            // Draw route polyline
+            if (dayData.polyline && dayData.polyline.length > 0) {
+                mapPolyline = L.polyline(dayData.polyline, {
+                    color: '#059669', // Emerald-600
+                    weight: 4,
+                    opacity: 0.8,
+                    dashArray: '5, 10'
+                }).addTo(map);
+            }
+
+            // Fit bounds elegantly
+            const bounds = L.latLngBounds(dayData.polyline || dayData.markers.map(m => m.coords));
+            map.fitBounds(bounds, { padding: [40, 40] });
+        }
+
+        // Switch selected travel scheme (A, B, or C)
+        function switchScheme(schemeCode) {
+            currentScheme = schemeCode;
+            currentDay = 1; // reset to day 1 on scheme change
+
+            // Update tab styles
+            ['A', 'B', 'C'].forEach(s => {
+                const btn = document.getElementById(`btn-scheme-${s}`);
+                if (s === schemeCode) {
+                    btn.className = `px-5 py-3 rounded-t-xl font-semibold text-sm transition-all whitespace-nowrap flex items-center gap-2 bg-white text-teal-900 shadow-sm border-t-2 border-emerald-500`;
+                    // Update inner span number icon
+                    btn.querySelector('span').className = "w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-xs flex items-center justify-center font-bold";
+                } else {
+                    btn.className = `px-5 py-3 rounded-t-xl font-semibold text-sm text-teal-100 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2`;
+                    btn.querySelector('span').className = "w-5 h-5 rounded-full bg-teal-800 text-teal-100 text-xs flex items-center justify-center font-bold";
+                }
+            });
+
+            // Update Day Title labels
+            const scheme = itineraries[schemeCode];
+            document.getElementById('label-day1-title').innerText = scheme.days[1].route.split('➔')[1] || '';
+            document.getElementById('label-day2-title').innerText = scheme.days[2].route.split('➔')[0] || '';
+            document.getElementById('label-day3-title').innerText = scheme.days[3].route.split('➔')[0] || '';
+
+            // Update general texts
+            document.getElementById('scheme-title').innerText = scheme.title;
+            document.getElementById('scheme-description').innerText = scheme.description;
+
+            // Render Highlights Badges
+            const highlightsContainer = document.getElementById('scheme-highlights');
+            highlightsContainer.innerHTML = '';
+            scheme.highlights.forEach(h => {
+                highlightsContainer.innerHTML += `
+                    <span class="inline-flex items-center gap-1 bg-white border border-emerald-100 text-emerald-800 font-medium text-xs px-2.5 py-1 rounded-lg">
+                        <svg class="w-3 h-3 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        ${h}
+                    </span>
+                `;
+            });
+
+            // Re-render
+            switchDay(1);
+            calculateBudget();
+        }
+
+        // Switch between Day 1, 2, 3 buttons
+        function switchDay(dayNum) {
+            currentDay = dayNum;
+
+            // Style buttons
+            [1, 2, 3].forEach(d => {
+                const btn = document.getElementById(`btn-day-${d}`);
+                if (d === dayNum) {
+                    btn.className = `flex-1 py-3 px-4 rounded-lg font-bold text-sm text-center transition-all bg-emerald-600 text-white shadow-sm flex items-center justify-center gap-1.5`;
+                } else {
+                    btn.className = `flex-1 py-3 px-4 rounded-lg font-bold text-sm text-center transition-all text-slate-600 hover:text-slate-800 hover:bg-slate-50 flex items-center justify-center gap-1.5`;
+                }
+            });
+
+            const dayData = itineraries[currentScheme].days[dayNum];
+            document.getElementById('day-route-header').innerText = `Day ${dayNum}：${dayData.route}`;
+            document.getElementById('day-route-tag').innerText = dayData.tag;
+
+            // Render Timeline nodes
+            const container = document.getElementById('timeline-container');
+            container.innerHTML = '';
+
+            dayData.schedule.forEach((node, index) => {
+                let bgTypeClass = 'bg-slate-100 border-slate-300';
+                let iconSVG = '';
+                let borderTypeClass = 'border-l-4 border-slate-400';
+
+                // Assign icons and color codes according to travel type
+                if (node.type === 'transport') {
+                    bgTypeClass = 'bg-sky-50 text-sky-700 border-sky-100';
+                    borderTypeClass = 'border-l-4 border-sky-500';
+                    iconSVG = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>`;
+                } else if (node.type === 'food') {
+                    bgTypeClass = 'bg-amber-50 text-amber-700 border-amber-100';
+                    borderTypeClass = 'border-l-4 border-amber-500';
+                    iconSVG = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>`;
+                } else if (node.type === 'attraction') {
+                    bgTypeClass = 'bg-emerald-50 text-emerald-700 border-emerald-100';
+                    borderTypeClass = 'border-l-4 border-emerald-500';
+                    iconSVG = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>`;
+                } else if (node.type === 'hotel') {
+                    bgTypeClass = 'bg-indigo-50 text-indigo-700 border-indigo-100';
+                    borderTypeClass = 'border-l-4 border-indigo-500';
+                    iconSVG = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>`;
+                }
+
+                container.innerHTML += `
+                    <div class="relative pl-12 md:pl-16 group transition-all duration-300">
+                        <!-- Left Timeline Dot with Icon -->
+                        <div class="absolute left-3.5 md:left-5 top-1 w-6 h-6 md:w-7 md:h-7 rounded-full bg-white border-2 border-slate-300 flex items-center justify-center text-slate-500 z-10 group-hover:scale-110 group-hover:border-emerald-500 group-hover:text-emerald-600 transition-all shadow-sm">
+                            ${iconSVG || (index+1)}
+                        </div>
+                        
+                        <!-- Main Node Card -->
+                        <div class="bg-white rounded-2xl border border-slate-100 p-4 md:p-5 shadow-sm hover:shadow-md transition-all ${borderTypeClass}">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold px-2 py-0.5 rounded-full ${bgTypeClass}">
+                                        ${node.time}
+                                    </span>
+                                    <h5 class="font-bold text-slate-800 text-sm md:text-base">${node.title}</h5>
+                                </div>
+                                ${node.tag ? `<span class="text-[10px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded">${node.tag}</span>` : ''}
+                            </div>
+                            <p class="text-xs md:text-sm text-slate-500 leading-relaxed">${node.desc}</p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Update Leaflet display
+            updateMapData();
+        }
+
+        // Interactive Dynamic Budget Calculator
+        function calculateBudget() {
+            const people = parseInt(document.getElementById('input-people').value) || 1;
+            const hotelPrice = parseInt(document.getElementById('select-hotel').value) || 0;
+            const transportPrice = parseInt(document.getElementById('select-transport').value) || 0;
+
+            const totalTransport = transportPrice * 3; // 3 Days
+            const roomsNeeded = Math.ceil(people / 2); // 2 people per room
+            const totalHotel = hotelPrice * roomsNeeded * 2; // 2 nights
+            const foodAndTickets = 3500 * people; // Meals & miscellaneous fees per person
+
+            const grandTotal = totalTransport + totalHotel + foodAndTickets;
+            const averagePerPerson = Math.round(grandTotal / people);
+
+            // Print formatted prices on UI
+            document.getElementById('calc-transport-fee').innerText = `$${totalTransport.toLocaleString()} 元`;
+            document.getElementById('calc-hotel-fee').innerText = `$${totalHotel.toLocaleString()} 元 (開 ${roomsNeeded} 間雙人房)`;
+            document.getElementById('calc-total-fee').innerText = `$${grandTotal.toLocaleString()} 元`;
+            document.getElementById('calc-avg-fee').innerText = `$${averagePerPerson.toLocaleString()} 元 / 人`;
+        }
+
+        // Render printing version dynamically to ensure standard high fidelity export
+        function preparePrintAll() {
+            const container = document.getElementById('print-all-itineraries');
+            container.innerHTML = '';
+
+            Object.keys(itineraries).forEach(key => {
+                const s = itineraries[key];
+                let schemeHTML = `
+                    <div class="print-card border border-slate-200 rounded-xl p-6 mb-8 page-break-after">
+                        <h2 class="text-xl font-bold text-emerald-700 border-b pb-2 mb-4">${s.title}</h2>
+                        <p class="text-xs text-slate-600 mb-4 leading-relaxed">${s.description}</p>
+                        <div class="grid grid-cols-3 gap-4 mb-4">
+                `;
+
+                // Add days
+                [1, 2, 3].forEach(day => {
+                    const d = s.days[day];
+                    schemeHTML += `
+                        <div class="border border-slate-100 rounded p-3 bg-slate-50/50">
+                            <h3 class="font-bold text-slate-800 text-xs mb-2">第 ${day} 天：${d.route}</h3>
+                            <ul class="space-y-2 text-[10px]">
+                    `;
+
+                    d.schedule.forEach(item => {
+                        schemeHTML += `
+                            <li class="border-b border-dashed border-slate-200 pb-1">
+                                <strong class="text-emerald-700">${item.time}</strong>
+                                <span class="font-medium text-slate-800">| ${item.title}</span>
+                                <p class="text-[9px] text-slate-500 mt-0.5">${item.desc}</p>
+                            </li>
+                        `;
+                    });
+
+                    schemeHTML += `</ul></div>`;
+                });
+
+                schemeHTML += `</div></div>`;
+                container.innerHTML += schemeHTML;
+            });
+        }
+
+        // Window startup bindings
+        window.onload = function() {
+            // Setup Map
+            initMap();
+            // Fire tab default A
+            switchScheme('A');
+            // Populate Print Version
+            preparePrintAll();
+        }
+    </script>
+</body>
+</html>
