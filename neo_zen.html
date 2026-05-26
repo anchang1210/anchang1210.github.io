@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neo-Zen Space | 數位創作與心靈空間</title>
+    <!-- 載入 Tailwind CSS & Chart.js -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        :root {
+            --bg-gradient-start: #0a0a0c;
+            --bg-gradient-end: #121218;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.06);
+            --text-glow: 0 0 12px rgba(255, 255, 255, 0.15);
+            --accent-glow: 0 0 20px rgba(167, 139, 250, 0.3);
+        }
+
+        .light-theme {
+            --bg-gradient-start: #f4f6f8;
+            --bg-gradient-end: #e2e8f0;
+            --glass-bg: rgba(0, 0, 0, 0.02);
+            --glass-border: rgba(0, 0, 0, 0.08);
+            --text-glow: 0 0 12px rgba(0, 0, 0, 0.05);
+            --accent-glow: 0 0 20px rgba(124, 58, 237, 0.15);
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            transition: background 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .font-title {
+            font-family: 'Cinzel', 'Noto Sans TC', serif;
+        }
+
+        /* 磨砂玻璃特效 */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .neon-border-hover:hover {
+            border-color: rgba(167, 139, 250, 0.4);
+            box-shadow: var(--accent-glow);
+        }
+
+        /* 音樂脈動動畫 */
+        @keyframes pulse-slow {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.03); opacity: 1; filter: drop-shadow(0 0 15px rgba(167, 139, 250, 0.5)); }
+        }
+        .pulsing-accent {
+            animation: pulse-slow 4s infinite ease-in-out;
+        }
+
+        /* 隱藏捲軸 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen overflow-x-hidden relative transition-colors duration-500 light:text-slate-800">
+
+    <!-- 動態背景畫布 -->
+    <canvas id="bgCanvas" class="fixed top-0 left-0 w-full h-full -z-10 pointer-events-auto"></canvas>
+
+    <!-- 主導覽列 -->
+    <nav class="fixed top-0 w-full z-50 glass-panel border-b border-white/5 py-4 px-6 flex justify-between items-center">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="playZenChime()">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-violet-500 to-fuchsia-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-violet-500/30">
+                Ω
+            </div>
+            <span class="font-title font-bold tracking-widest text-lg bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent dark-text-swap">NEO-ZEN</span>
+        </div>
+        <div class="flex items-center space-x-6">
+            <button onclick="toggleTheme()" class="p-2 rounded-full glass-panel hover:bg-white/10 transition-all text-lg" title="切換光/暗主題">
+                🌓
+            </button>
+            <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-full flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                目前狀態：靜心創作中
+            </span>
+        </div>
+    </nav>
+
+    <!-- 主內容區 -->
+    <main class="max-w-7xl mx-auto pt-28 pb-16 px-4 md:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
+        
+        <!-- 左側：個人狀態、生活維度、以及音樂音效面板 (佔 4 欄) -->
+        <div class="lg:col-span-4 space-y-8">
+            
+            <!-- 個人頭像與標籤卡 -->
+            <div class="glass-panel p-6 rounded-3xl relative overflow-hidden group">
+                <div class="absolute -right-16 -top-16 w-36 h-36 bg-violet-600/10 rounded-full blur-3xl group-hover:bg-violet-600/20 transition-all duration-700"></div>
+                <div class="flex flex-col items-center text-center">
+                    <div class="relative mb-4">
+                        <div class="absolute -inset-1 rounded-full bg-gradient-to-tr from-violet-500 to-fuchsia-500 pulsing-accent blur-md opacity-70"></div>
+                        <img src="https://placehold.co/150x150/1c1c24/ffffff?text=Creator" alt="User Avatar" class="relative w-24 h-24 rounded-full border-2 border-white/20 object-cover shadow-2xl">
+                    </div>
+                    <h2 class="font-title text-2xl font-bold mb-1 tracking-wider text-white dark-text">暮野流風</h2>
+                    <p class="text-xs text-violet-400 font-medium tracking-widest mb-4">FRONTEND DEVELOPER & SOUND DESIGNER</p>
+                    <p class="text-sm text-gray-400 dark-text-gray leading-relaxed mb-6">
+                        「萬物皆有裂痕，那是光照進來的地方。」專注於探索前端極致美學、音頻合成與極簡主義生活。
+                    </p>
+                    <div class="flex space-x-3 w-full">
+                        <button onclick="playZenChime()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-sm font-bold shadow-lg hover:shadow-violet-600/30 hover:opacity-90 transition-all text-white">
+                            🔔 敲擊頌缽
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 靈感金句器與心情記錄器 -->
+            <div class="glass-panel p-6 rounded-3xl space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-title text-lg font-bold tracking-wide">💡 靈感微光</h3>
+                    <button onclick="generateQuote()" class="text-xs text-violet-400 hover:text-violet-300 transition-colors">➔ 刷新</button>
+                </div>
+                <div class="min-h-[80px] flex flex-col justify-center border-l-2 border-violet-500/50 pl-4 py-1">
+                    <p id="quoteText" class="text-sm text-gray-300 dark-text-gray italic leading-relaxed">"在嘈雜的時代中，尋找一絲屬於自己的安靜頻率。"</p>
+                    <span id="quoteAuthor" class="text-[11px] text-gray-500 mt-2 block text-right">— 禪意空間</span>
+                </div>
+                
+                <!-- 心情記錄 -->
+                <div class="pt-4 border-t border-white/5">
+                    <span class="text-xs text-gray-400 block mb-3">記錄今日創作心情：</span>
+                    <div class="grid grid-cols-5 gap-2 text-center">
+                        <button onclick="setMood('平和', '😇')" class="p-2 rounded-xl bg-white/5 hover:bg-violet-600/20 transition-all text-lg" title="平和">😇</button>
+                        <button onclick="setMood('靈感爆棚', '⚡')" class="p-2 rounded-xl bg-white/5 hover:bg-violet-600/20 transition-all text-lg" title="靈感">⚡</button>
+                        <button onclick="setMood('疲憊休整', '🔋')" class="p-2 rounded-xl bg-white/5 hover:bg-violet-600/20 transition-all text-lg" title="疲憊">🔋</button>
+                        <button onclick="setMood('迷茫探索', '🌀')" class="p-2 rounded-xl bg-white/5 hover:bg-violet-600/20 transition-all text-lg" title="探索">🌀</button>
+                        <button onclick="setMood('專注深流', '🧘')" class="p-2 rounded-xl bg-white/5 hover:bg-violet-600/20 transition-all text-lg" title="專注">🧘</button>
+                    </div>
+                    <div id="moodStatus" class="mt-3 text-xs text-center text-violet-400 font-medium">目前的創作氣候：專注深流 🧘</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右側：主工作面板與儀表板 (佔 8 欄) -->
+        <div class="lg:col-span-8 space-y-8">
+            
+            <!-- 禪意專注計時器 -->
+            <div class="glass-panel p-8 rounded-3xl relative overflow-hidden">
+                <div class="absolute -right-20 -bottom-20 w-48 h-48 bg-fuchsia-600/10 rounded-full blur-3xl"></div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <!-- 計時器主視覺 -->
+                    <div class="flex flex-col items-center justify-center text-center">
+                        <div class="relative w-48 h-48 flex items-center justify-center">
+                            <!-- SVG 外環圈 -->
+                            <svg class="absolute w-full h-full transform -rotate-90">
+                                <circle cx="96" cy="96" r="84" stroke="rgba(255,255,255,0.05)" stroke-width="6" fill="transparent" />
+                                <circle id="timerProgress" cx="96" cy="96" r="84" stroke="url(#timerGrad)" stroke-width="8" fill="transparent" stroke-dasharray="527" stroke-dashoffset="0" stroke-linecap="round" class="transition-all duration-1000" />
+                                <defs>
+                                    <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#8b5cf6" />
+                                        <stop offset="100%" stop-color="#ec4899" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <!-- 時間數字 -->
+                            <div class="relative z-10">
+                                <span id="timerText" class="font-title text-4xl font-semibold tracking-wider text-white dark-text">25:00</span>
+                                <span id="timerLabel" class="block text-[11px] text-gray-400 tracking-widest mt-1">深呼吸 ➔ 吐氣</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 計時器控制面板 -->
+                    <div class="space-y-5">
+                        <h3 class="font-title text-xl font-bold tracking-wide">🧘 禪意專注計時</h3>
+                        <p class="text-sm text-gray-400 leading-relaxed">
+                            結合聲景與自適應頌缽聲波，每次完成專注時段將釋放長效延音鐘聲，緩解精神焦慮，找回創作節奏。
+                        </p>
+                        
+                        <div class="flex space-x-3">
+                            <button onclick="startTimer()" id="timerStartBtn" class="flex-1 py-3 rounded-2xl bg-white/10 hover:bg-white/20 transition-all font-bold text-sm tracking-widest text-white border border-white/10">
+                                START 啟動
+                            </button>
+                            <button onclick="resetTimer()" class="px-5 py-3 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/10 transition-all font-bold text-sm">
+                                重設
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setTimerDuration(15)" class="py-1.5 rounded-lg bg-white/5 hover:bg-violet-600/20 text-xs transition-all">短暫小憩 (15m)</button>
+                            <button onclick="setTimerDuration(25)" class="py-1.5 rounded-lg bg-white/5 hover:bg-violet-600/20 text-xs transition-all">標準專注 (25m)</button>
+                            <button onclick="setTimerDuration(45)" class="py-1.5 rounded-lg bg-white/5 hover:bg-violet-600/20 text-xs transition-all">深度沉浸 (45m)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 創作與靈感數據流 (Chart.js) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- 生命維度 / 技能樹 -->
+                <div class="glass-panel p-6 rounded-3xl">
+                    <h4 class="font-title text-base font-bold mb-4 tracking-wide text-center">🪐 創作維度分佈</h4>
+                    <div class="chart-container">
+                        <canvas id="lifeChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 本週靈感流速折線 -->
+                <div class="glass-panel p-6 rounded-3xl">
+                    <h4 class="font-title text-base font-bold mb-4 tracking-wide text-center">📈 靈感與產出流速</h4>
+                    <div class="chart-container">
+                        <canvas id="flowChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 傳送門：專案與傳送門卡片區 -->
+            <div class="space-y-4">
+                <h3 class="font-title text-lg font-bold tracking-widest">🗂️ 創作宇宙專案傳送門</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- 卡片 1 -->
+                    <a href="javascript:void(0)" onclick="playSynthTone(261.63)" class="glass-panel p-5 rounded-2xl block border border-white/5 neon-border-hover transition-all duration-300">
+                        <div class="text-2xl mb-2">🪐</div>
+                        <h5 class="font-bold text-sm mb-1 text-white dark-text">太空漫步指南</h5>
+                        <p class="text-xs text-gray-400 dark-text-gray leading-relaxed">一個基於 Three.js 建立的 3D 星際交互地圖，帶領長輩漫步璀璨銀河。</p>
+                        <div class="mt-3 flex justify-between items-center text-[10px] text-violet-400 font-bold">
+                            <span>Web App</span>
+                            <span>查看詳情 ➔</span>
+                        </div>
+                    </a>
+                    <!-- 卡片 2 -->
+                    <a href="javascript:void(0)" onclick="playSynthTone(293.66)" class="glass-panel p-5 rounded-2xl block border border-white/5 neon-border-hover transition-all duration-300">
+                        <div class="text-2xl mb-2">🍵</div>
+                        <h5 class="font-bold text-sm mb-1 text-white dark-text">ZenTea 禪茶心靈</h5>
+                        <p class="text-xs text-gray-400 dark-text-gray leading-relaxed">結合泡茶倒數、呼吸調節與自然水聲的儀式感心靈修復網頁小工具。</p>
+                        <div class="mt-3 flex justify-between items-center text-[10px] text-violet-400 font-bold">
+                            <span>Interactive UI</span>
+                            <span>查看詳情 ➔</span>
+                        </div>
+                    </a>
+                    <!-- 卡片 3 -->
+                    <a href="javascript:void(0)" onclick="playSynthTone(329.63)" class="glass-panel p-5 rounded-2xl block border border-white/5 neon-border-hover transition-all duration-300">
+                        <div class="text-2xl mb-2">📝</div>
+                        <h5 class="font-bold text-sm mb-1 text-white dark-text">極簡靈感筆記</h5>
+                        <p class="text-xs text-gray-400 dark-text-gray leading-relaxed">一秒捕獲想法！本機 LocalStorage 快速儲存的 Markdown 輕型卡片式看板。</p>
+                        <div class="mt-3 flex justify-between items-center text-[10px] text-violet-400 font-bold">
+                            <span>Tools</span>
+                            <span>查看詳情 ➔</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- 頌缽 Web Audio 音效產生器腳本 -->
+    <script>
+        // 初始化 Web Audio API
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // 模擬「西藏頌缽 (Singing Bowl)」多諧波撞擊延音效果
+        function playZenChime() {
+            initAudio();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const now = audioCtx.currentTime;
+            
+            // 基礎振盪頻率：頌缽通常包含一個深邃的主音 (如 144Hz, 220Hz)
+            const rootFreq = 144; 
+            
+            // 頌缽特有的諧波比例 (非整數倍，具有豐富的神祕感不和諧度)
+            const harmonics = [1, 1.88, 2.72, 3.56, 4.41];
+            const gains = [0.6, 0.4, 0.25, 0.15, 0.08];
+
+            harmonics.forEach((ratio, index) => {
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                // 頌缽主要為正弦波，具有乾淨飽滿的特性
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(rootFreq * ratio, now);
+                
+                // 微幅頻率顫音效果 (LFO - Vibrato) 增添真實感
+                const lfo = audioCtx.createOscillator();
+                const lfoGain = audioCtx.createGain();
+                lfo.frequency.value = 5 + (index * 0.5); // 5Hz 左右的顫動
+                lfoGain.gain.value = 1.5; // 顫動幅度 1.5Hz
+                
+                lfo.connect(lfoGain);
+                lfoGain.connect(osc.frequency);
+                
+                // 設定包絡線：慢速淡入、長衰減延音
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(gains[index], now + 0.05); // 起音
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 6); // 延音長達 6 秒
+
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                lfo.start(now);
+                osc.start(now);
+                
+                lfo.stop(now + 6);
+                osc.stop(now + 6);
+            });
+        }
+
+        // 點擊專案時撥放清脆的木琴階梯音
+        function playSynthTone(frequency) {
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.type = 'triangle';
+            osc.frequency.value = frequency;
+            
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start(now);
+            osc.stop(now + 1.2);
+        }
+    </script>
+
+    <!-- 動態背景粒子網絡 JS 實現 -->
+    <script>
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let particles = [];
+        let mouse = { x: null, y: null, radius: 150 };
+
+        // 適應視窗大小
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initParticles();
+        }
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.baseX = this.x;
+                this.baseY = this.y;
+                this.density = (Math.random() * 20) + 10;
+                this.color = document.body.classList.contains('light-theme') 
+                    ? `rgba(124, 58, 237, ${Math.random() * 0.15 + 0.05})` // 紫色粒子
+                    : `rgba(255, 255, 255, ${Math.random() * 0.2 + 0.05})`; // 白色微光
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+
+            update() {
+                // 滑鼠交互：流體推擠排斥效果
+                if (mouse.x !== null && mouse.y !== null) {
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+                    let forceDirectionX = dx / distance;
+                    let forceDirectionY = dy / distance;
+                    let maxDistance = mouse.radius;
+                    let force = (maxDistance - distance) / maxDistance;
+                    let directionX = forceDirectionX * force * this.density;
+                    let directionY = forceDirectionY * force * this.density;
+
+                    if (distance < mouse.radius) {
+                        this.x -= directionX;
+                        this.y -= directionY;
+                    } else {
+                        if (this.x !== this.baseX) {
+                            let dxBase = this.x - this.baseX;
+                            this.x -= dxBase / 20;
+                        }
+                        if (this.y !== this.baseY) {
+                            let dyBase = this.y - this.baseY;
+                            this.y -= dyBase / 20;
+                        }
+                    }
+                }
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const particleCount = Math.floor((canvas.width * canvas.height) / 10000);
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateBg() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            // 繪製粒子間的弱連結線段
+            connectParticles();
+            requestAnimationFrame(animateBg);
+        }
+
+        function connectParticles() {
+            const opacityMultiplier = document.body.classList.contains('light-theme') ? 0.05 : 0.08;
+            for (let a = 0; a < particles.length; a++) {
+                for (let b = a; b < particles.length; b++) {
+                    let dx = particles[a].x - particles[b].x;
+                    let dy = particles[a].y - particles[b].y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < 100) {
+                        let op = (1 - (dist / 100)) * opacityMultiplier;
+                        ctx.strokeStyle = document.body.classList.contains('light-theme') 
+                            ? `rgba(124, 58, 237, ${op})`
+                            : `rgba(255, 255, 255, ${op})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[a].x, particles[a].y);
+                        ctx.lineTo(particles[b].x, particles[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        // 滑鼠 & 觸控追蹤
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+        });
+        window.addEventListener('mouseout', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
+        window.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                mouse.x = e.touches[0].clientX;
+                mouse.y = e.touches[0].clientY;
+            }
+        });
+        window.addEventListener('touchend', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        animateBg();
+    </script>
+
+    <!-- 靜心計時器 JS 控制邏輯 -->
+    <script>
+        let timerInterval = null;
+        let originalSeconds = 1500; // 25 分鐘
+        let secondsLeft = 1500;
+        let isTimerRunning = false;
+
+        const timerProgressCircle = document.getElementById('timerProgress');
+        const timerText = document.getElementById('timerText');
+        const timerLabel = document.getElementById('timerLabel');
+        const timerStartBtn = document.getElementById('timerStartBtn');
+
+        const totalDash = 527; // stroke-dasharray 的值
+
+        function updateTimerUI() {
+            const minutes = Math.floor(secondsLeft / 60);
+            const seconds = secondsLeft % 60;
+            timerText.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // 計算進度條偏移
+            const percent = secondsLeft / originalSeconds;
+            const offset = totalDash * (1 - percent);
+            timerProgressCircle.style.strokeDashoffset = offset;
+        }
+
+        function startTimer() {
+            initAudio(); // 確保使用者互動事件中啟動音頻
+            if (isTimerRunning) {
+                // 暫停計時
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                timerStartBtn.innerText = "START 啟動";
+                timerLabel.innerText = "暫停中 🧘";
+            } else {
+                // 啟動計時
+                isTimerRunning = true;
+                timerStartBtn.innerText = "PAUSE 暫停";
+                timerLabel.innerText = "保持均勻深呼吸...";
+                
+                timerInterval = setInterval(() => {
+                    secondsLeft--;
+                    updateTimerUI();
+
+                    // 每分鐘微鳴一下引導呼吸
+                    if (secondsLeft > 0 && secondsLeft % 60 === 0) {
+                        playSynthTone(523.25); // 高音 C 引導
+                    }
+
+                    if (secondsLeft <= 0) {
+                        clearInterval(timerInterval);
+                        isTimerRunning = false;
+                        timerStartBtn.innerText = "START 啟動";
+                        timerLabel.innerText = "圓滿完成！";
+                        playZenChime(); // 播放終點巨大頌缽音
+                        secondsLeft = originalSeconds;
+                        updateTimerUI();
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            secondsLeft = originalSeconds;
+            timerStartBtn.innerText = "START 啟動";
+            timerLabel.innerText = "重新回歸寧靜...";
+            updateTimerUI();
+        }
+
+        function setTimerDuration(minutes) {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            originalSeconds = minutes * 60;
+            secondsLeft = originalSeconds;
+            timerStartBtn.innerText = "START 啟動";
+            timerLabel.innerText = `準備專注 ${minutes} 分鐘`;
+            updateTimerUI();
+            playSynthTone(329.63);
+        }
+
+        updateTimerUI();
+    </script>
+
+    <!-- 金句資料、心情資料與 Chart.js 圖表庫初始化 -->
+    <script>
+        const quotes = [
+            { text: "在嘈雜的時代中，尋找一絲屬於自己的安靜頻率。", author: "禪意空間" },
+            { text: "簡單是複雜的極致表現形式。", author: "賈伯斯" },
+            { text: "溪聲便是廣長舌，山色豈非清淨身。", author: "蘇軾" },
+            { text: "當我們慢下來時，世界就會跟著慢下來。", author: "慢活哲學" },
+            { text: "靈感不是等來的，而是在雙手專注工作時降臨的。", author: "畢卡索" },
+            { text: "心靜，則萬物歸其位。", author: "東方智者" }
+        ];
+
+        function generateQuote() {
+            const randIndex = Math.floor(Math.random() * quotes.length);
+            const target = quotes[randIndex];
+            
+            const qText = document.getElementById('quoteText');
+            const qAuth = document.getElementById('quoteAuthor');
+            
+            // 淡出淡入動畫
+            qText.style.opacity = 0;
+            qAuth.style.opacity = 0;
+            
+            setTimeout(() => {
+                qText.innerText = `"${target.text}"`;
+                qAuth.innerText = `— ${target.author}`;
+                qText.style.opacity = 1;
+                qAuth.style.opacity = 1;
+            }, 300);
+            
+            playSynthTone(440); // 奏鳴一個輕音 A4
+        }
+
+        function setMood(moodName, emoji) {
+            const status = document.getElementById('moodStatus');
+            status.style.opacity = 0;
+            setTimeout(() => {
+                status.innerText = `目前的創作氣候：${moodName} ${emoji}`;
+                status.style.opacity = 1;
+            }, 200);
+            playSynthTone(392); // 奏鳴一個低音 G
+        }
+
+        // 初始化 Chart.js
+        let lifeChart = null;
+        let flowChart = null;
+
+        function renderCharts() {
+            const isLight = document.body.classList.contains('light-theme');
+            const mainColor = isLight ? '#7c3aed' : '#a78bfa';
+            const subColor = isLight ? '#ec4899' : '#f472b6';
+            const textColor = isLight ? '#1e293b' : '#94a3b8';
+            const gridColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
+
+            // 1. 雷達圖 (個人創作維度分佈)
+            const radarCtx = document.getElementById('lifeChart').getContext('2d');
+            lifeChart = new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['美學思考', '技術實踐', '寫作輸出', '靜心耐力', '音頻感度'],
+                    datasets: [{
+                        label: '靈魂雷達',
+                        data: [90, 85, 75, 95, 80],
+                        backgroundColor: 'rgba(167, 139, 250, 0.2)',
+                        borderColor: mainColor,
+                        pointBackgroundColor: mainColor,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { display: false },
+                            grid: { color: gridColor },
+                            angleLines: { color: gridColor },
+                            pointLabels: {
+                                font: { family: 'Noto Sans TC', size: 11, weight: 'bold' },
+                                color: textColor
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // 2. 折線圖 (創作產出流速)
+            const lineCtx = document.getElementById('flowChart').getContext('2d');
+            flowChart = new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: ['週一', '週二', '週三', '週四', '週五', '週六', '週日'],
+                    datasets: [{
+                        label: '心流速度',
+                        data: [30, 45, 85, 60, 95, 40, 70],
+                        borderColor: subColor,
+                        backgroundColor: 'rgba(236, 72, 153, 0.05)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: subColor
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: textColor, font: { family: 'Noto Sans TC', size: 10 } }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: gridColor },
+                            ticks: { color: textColor, font: { size: 10 } }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // 光/暗 主題切換
+        function toggleTheme() {
+            document.body.classList.toggle('light-theme');
+            
+            // 重新刷新圖表色調
+            if (lifeChart) lifeChart.destroy();
+            if (flowChart) flowChart.destroy();
+            renderCharts();
+
+            // 刷新所有粒子色彩
+            initParticles();
+            playSynthTone(523.25); // C5
+        }
+
+        // 初始化圖表
+        renderCharts();
+    </script>
+</body>
+</html>
